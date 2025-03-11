@@ -122,8 +122,7 @@ class PingtiManipulatorRobot(ManipulatorRobot):
             # Mode=0 for Position Control
             self.follower_arms[name].write("Mode", 0)
             # Set P_Coefficient to lower value to avoid shakiness (Default is 32)
-            self.follower_arms[name].write("P_Coefficient", 16)
-            # Set I_Coefficient and D_Coefficient to default value 0 and 32
+            self.follower_arms[name].write("P_Coefficient", 8)
             self.follower_arms[name].write("I_Coefficient", 0)
             self.follower_arms[name].write("D_Coefficient", 0)
             # Close the write lock so that Maximum_Acceleration gets written to EPROM address,
@@ -132,7 +131,10 @@ class PingtiManipulatorRobot(ManipulatorRobot):
             # Set Maximum_Acceleration to 254 to speedup acceleration and deceleration of
             # the motors. Note: this configuration is not in the official STS3215 Memory Table
             self.follower_arms[name].write("Maximum_Acceleration", 125)
-            self.follower_arms[name].write("Acceleration", 254)
+            self.follower_arms[name].write("Acceleration", 125)
+            
+            # Set Minimum_Startup_Force to lower value to avoid shakiness (Default is 32)
+            self.follower_arms[name].write("Minimum_Startup_Force", 5)
     
     def activate_calibration(self):
         """After calibration all motors function in human interpretable ranges.

@@ -18,7 +18,6 @@ def make_robot_from_config(config: RobotConfig):
 
 @parser.wrap()
 def control_pingti_robot(cfg: ControlPipelineConfig):
-    print('hello in func')
     init_logging()
     logging.info(pformat(asdict(cfg)))
 
@@ -38,7 +37,5 @@ def control_pingti_robot(cfg: ControlPipelineConfig):
         # termination due to camera threads not properly exiting.
         robot.disconnect()
 
-print('hello!')
 if __name__ == "__main__":
-    print('In control pingti robot')
     control_pingti_robot()

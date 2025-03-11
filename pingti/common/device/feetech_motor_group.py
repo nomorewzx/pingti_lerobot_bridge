@@ -796,9 +796,6 @@ class FeetechMotorGroupsBus:
         group = scs.GroupSyncWrite(self.port_handler, self.packet_handler, addr, bytes)
         for idx, value in zip(motor_ids, values, strict=True):
             data = convert_to_bytes(value, bytes, self.mock)
-            # data = convert_to_bytes_goal_position(value)
-            print('motor_id:', idx)
-            print('converted_value', data)
             group.addParam(idx, data)
 
         for _ in range(num_retry):
@@ -877,8 +874,6 @@ class FeetechMotorGroupsBus:
             self.group_writers[group_key] = scs.GroupSyncWrite(
                 self.port_handler, self.packet_handler, addr, bytes
             )
-        print('===============================================================')
-        print(f'FeetechGroupMotorBus: Write {data_name} for motors {all_motor_ids}, the vlaue is {all_motor_values}')
         
         for idx, value in zip(all_motor_ids, all_motor_values, strict=True):
             data = convert_to_bytes(value, bytes, self.mock)

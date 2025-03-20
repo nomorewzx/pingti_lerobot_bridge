@@ -139,14 +139,47 @@ python pingti/scripts/control_pingti_robot.py \
   --control.type=teleoperate
 ```
 
-## 5. Record dataset, Training policy etc.
+To collect dataset, you will need to setup the camera, [follow this guide to setup camera](https://github.com/huggingface/lerobot/blob/main/examples/7_get_started_with_real_robot.md#c-add-your-cameras-with-opencvcamera)
+
+After finding the idx of cameras, you can update `configs.py` like blow:
+
+```
+cameras: dict[str, CameraConfig] = field(
+        default_factory=lambda: {
+            "wrist_camera": OpenCVCameraConfig(
+                camera_index=0,
+                fps=30,
+                width=640,
+                height=480,
+            ),
+            "front_camera": OpenCVCameraConfig(
+                camera_index=1,
+                fps=30,
+                width=640,
+                height=480,
+            ),
+        }
+    )
+```
+
+
+And then you can run teleopearation with camera, which is helpful to visualize whether camera captures the teleoperation scene properly before actually collecting dataset
+
+```bash
+python pingti/scripts/control_pingti_robot.py \
+  --robot.type=pingti \
+  --control.type=teleoperate
+```
+
+## 5. Record dataset & Visualize Dataset
+
+Follow [Data Record Guideline](./data_record_guide.md) for recording dataset
+
+## 6. Policy training
 
 You can follow [Lerobot Tutorial](https://github.com/huggingface/lerobot/blob/main/examples/10_use_so100.md#g-record-a-dataset) for below tasks:
 
-- Record dataset
 - Visualize a dataset
 - Replay an episode
 - Train a policy
 - Evaluate your policy
-
-You just need to replace the script `lerobot/scripts/control_robot.py` with `pingti/scripts/control_pingti_robot.py`

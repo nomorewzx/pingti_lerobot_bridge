@@ -2,16 +2,19 @@ from dataclasses import asdict
 import logging
 from pprint import pformat
 from lerobot.common.robot_devices.control_configs import CalibrateControlConfig, ControlPipelineConfig, RecordControlConfig, ReplayControlConfig, TeleoperateControlConfig
-from lerobot.common.robot_devices.robots.configs import ManipulatorRobotConfig, RobotConfig
+from lerobot.common.robot_devices.robots.configs import ManipulatorRobotConfig 
 from lerobot.common.utils.utils import init_logging
 from lerobot.configs import parser
 from lerobot.scripts.control_robot import calibrate, record, replay, teleoperate
-from pingti.common.device.configs import PingTiRobotConfig
+from pingti.common.device.configs import PingTiRobotConfig, LeKiwiPingTiRobotConfig
 
 def make_robot_from_config(config: RobotConfig):
     if isinstance(config, ManipulatorRobotConfig):
         from pingti.common.device.PingtiManipulator import PingtiManipulatorRobot
         return PingtiManipulatorRobot(config)
+    elif isinstance(config, LeKiwiPingTiRobotConfig):
+        from lerobot.common.robot_devices.robots.mobile_manipulator import MobileManipulator
+        return MobileManipulator(config)
     else:
         raise ValueError(f"Robot type '{config.robot_type}' is not available.")
 
@@ -22,7 +25,7 @@ def control_pingti_robot(cfg: ControlPipelineConfig):
     logging.info(pformat(asdict(cfg)))
 
     robot = make_robot_from_config(cfg.robot)
-
+    robot.connect()
     if isinstance(cfg.control, CalibrateControlConfig):
         calibrate(robot, cfg.control)
     elif isinstance(cfg.control, TeleoperateControlConfig):

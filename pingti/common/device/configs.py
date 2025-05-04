@@ -74,7 +74,7 @@ class PingTiRobotConfig(ManipulatorRobotConfig):
     mock: bool = False
 
 
-@RobotConfig.register_subclass("lekiwipingti")
+@RobotConfig.register_subclass("lekiwi_pingti")
 @dataclass
 class LeKiwiPingTiRobotConfig(RobotConfig):
     # `max_relative_target` limits the magnitude of the relative positional target vector for safety purposes.

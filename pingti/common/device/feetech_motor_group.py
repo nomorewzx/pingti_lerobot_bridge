@@ -383,6 +383,10 @@ class FeetechMotorGroupsBus:
 
     @property
     def motor_models(self) -> list[str]:
+        """
+        Return motor models with length motor.key(). 
+        The assumption is that the motors' model are same on the same joint
+        """
         all_motor_models = []
         for _, motor_group in self.motors.items():
             all_motor_models.append(motor_group[0][1])
@@ -390,6 +394,9 @@ class FeetechMotorGroupsBus:
 
     @property
     def motor_indices(self) -> list[int]:
+        """
+        Return all motor ids, if a joint has 2 motors, the 2 ids will be returned
+        """
         all_motor_indices = []
         for _, motor_group in self.motors.items():
             for motor in motor_group:

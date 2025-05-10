@@ -28,7 +28,6 @@ def control_pingti_robot(cfg: ControlPipelineConfig):
     logging.info(pformat(asdict(cfg)))
 
     robot = make_robot_from_config(cfg.robot)
-    robot.connect()
     if isinstance(cfg.control, CalibrateControlConfig):
         calibrate(robot, cfg.control)
     elif isinstance(cfg.control, TeleoperateControlConfig):

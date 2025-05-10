@@ -90,10 +90,10 @@ class LeKiwiPingTiRobotConfig(RobotConfig):
     cameras: dict[str, CameraConfig] = field(
         default_factory=lambda: {
             "front": OpenCVCameraConfig(
-                camera_index="/dev/video0", fps=30, width=640, height=480, rotation=90
+                camera_index="/dev/video1", fps=30, width=640, height=480, rotation=180
             ),
             "wrist": OpenCVCameraConfig(
-                camera_index="/dev/video2", fps=30, width=640, height=480, rotation=180
+                camera_index="/dev/video0", fps=30, width=640, height=480, rotation=90
             ),
         }
     )

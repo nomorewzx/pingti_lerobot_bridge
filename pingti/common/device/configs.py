@@ -120,7 +120,7 @@ class LeKiwiPingTiRobotConfig(RobotConfig):
     follower_arms: dict[str, MotorsBusConfig] = field(
         default_factory=lambda: {
             "main": FeetechMotorGroupsBusConfig( 
-                port="/dev/tty.usbserial-1130",
+                port="/dev/ttyUSB0",
                 motors={
                     # name: (index, model)
                     "shoulder_pan": [(1, "scs_series")],

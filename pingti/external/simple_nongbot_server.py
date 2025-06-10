@@ -168,7 +168,7 @@ def run_nong_bot(robot_config):
                 max(0.033 - elapsed, 0)
             )  # If robot jitters increase the sleep and monitor cpu load with `top` in cmd
     except KeyboardInterrupt:
-        print("Shutting down LeKiwi server.")
+        print("Shutting down NongBot server")
     finally:
         stop_event.set()
         cam_thread.join()

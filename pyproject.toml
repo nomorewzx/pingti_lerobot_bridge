@@ -13,7 +13,9 @@ authors = [
 license = {text = "Apache-2.0"}
 requires-python = ">=3.10"
 
-dependencies = []
+dependencies = [
+    "lerobot[feetech]"
+]
 
 [tool.setuptools]
 packages = ["pingti"]

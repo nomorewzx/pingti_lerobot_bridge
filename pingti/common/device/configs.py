@@ -236,3 +236,14 @@ class NongBotRobotConfig(RobotConfig):
     )
 
     mock: bool = False
+
+from lerobot.common.robot_devices.control_configs import ControlConfig
+@ControlConfig.register_subclass("remote_nong_bot")
+@dataclass
+class RemoteNongBotConfig(ControlConfig):
+    log_interval: int = 100
+    # Display all cameras on screen
+    display_data: bool = False
+    # Rerun configuration for remote robot (https://ref.rerun.io/docs/python/0.22.1/common/initialization_functions/#rerun.connect_tcp)
+    viewer_ip: str | None = None
+    viewer_port: str | None = None

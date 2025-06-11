@@ -11,7 +11,8 @@ import zmq
 
 from lerobot.common.robot_devices.cameras.utils import make_cameras_from_configs
 from lerobot.common.robot_devices.motors.feetech import TorqueMode
-from lerobot.common.robot_devices.motors.utils import MotorsBus, make_motors_buses_from_configs
+from lerobot.common.robot_devices.motors.utils import MotorsBus
+from pingti.common.device.utils import make_motors_buses_from_configs
 from lerobot.common.robot_devices.robots.configs import LeKiwiRobotConfig
 from lerobot.common.robot_devices.robots.feetech_calibration import run_arm_manual_calibration
 from lerobot.common.robot_devices.robots.utils import get_arm_id

@@ -7,7 +7,7 @@ from lerobot.scripts.control_robot import _init_rerun
 from lerobot.common.utils.utils import init_logging
 from lerobot.configs import parser
 from lerobot.scripts.control_robot import calibrate, record, replay, teleoperate
-from pingti.common.device.configs import LeKiwiPingTiRobotConfig
+from pingti.common.device.configs import LeKiwiPingTiRobotConfig, NongBotRobotConfig
 from pingti.common.device.lekiwi_pingti_remote import run_lekiwi_pingti
 
 
@@ -18,6 +18,9 @@ def make_robot_from_config(config: RobotConfig):
     elif isinstance(config, LeKiwiPingTiRobotConfig):
         from pingti.common.device.PingtiMobileManipulator import PingtiMobileManipulator
         return PingtiMobileManipulator(config)
+    elif isinstance(config, NongBotRobotConfig):
+        from pingti.external.NongMobileManipulator import NongMobileManipulator
+        return NongMobileManipulator(config)
     else:
         raise ValueError(f"Robot type '{config.robot_type}' is not available.")
 

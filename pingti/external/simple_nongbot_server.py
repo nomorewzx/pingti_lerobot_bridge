@@ -91,7 +91,7 @@ def run_nong_bot(robot_config):
     )
     cam_thread.start()
 
-    ser = serial.Serial("/dev/ttyUSB0", 115200, timeout=0.1)
+    ser = serial.Serial("/dev/ttyUSB1", 115200, timeout=0.1)
     nong_base = NongBase(ser)
 
     context, cmd_socket, video_socket = setup_zmq_sockets(robot_config)
@@ -102,7 +102,7 @@ def run_nong_bot(robot_config):
     try:
         while True:
             loop_start_time = time.time()
-
+            raw_command = None
             # Process incoming commands (non-blocking).
             while True:
                 try:
@@ -111,6 +111,8 @@ def run_nong_bot(robot_config):
                     break
                 try:
                     data = json.loads(msg)
+                    print('Data Received....')
+                    print(data)
                     # Process arm position commands.
                     if "arm_positions" in data:
                         arm_positions = data["arm_positions"]
@@ -128,7 +130,7 @@ def run_nong_bot(robot_config):
                         raw_command = data["raw_velocity"]
                         command_speeds = [
                             int(raw_command.get("x_speed", 0)),
-                            int(raw_command.get("steer_angle", 0)),
+                            int(raw_command.get("steer_angle_speed", 0)),
                         ]
                         nong_base.set_velocity(command_speeds)
                         last_cmd_time = time.time()
@@ -138,6 +140,12 @@ def run_nong_bot(robot_config):
             if now - last_cmd_time > 0.5:
                 nong_base.stop()
                 last_cmd_time = now
+
+            # Set current velocity  to 0 if no raw_command received
+            if raw_command is None:
+                current_velocity = [0,0]
+            else:
+                current_velocity = raw_command
 
             # Read the follower arm state from the motors bus.
             follower_arm_state = []
@@ -156,7 +164,7 @@ def run_nong_bot(robot_config):
             # Build the observation dictionary.
             observation = {
                 "images": images_dict_copy,
-                "raw_velocity": raw_command,
+                "raw_velocity": current_velocity,
                 "follower_arm_state": follower_arm_state,
             }
             # Send the observation over the video socket.

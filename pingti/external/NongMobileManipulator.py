@@ -72,14 +72,14 @@ class NongMobileManipulator:
         self.is_connected = False
 
         self.last_frames = {}
-        self.last_present_speed = {}
+        self.last_present_speed = torch.zeros(2, dtype=torch.float32)
         self.last_remote_arm_state = torch.zeros(6, dtype=torch.float32)
 
         # Define three speed levels and a current index
         self.speed_levels = [
-            {"x": 50, "steer_angle": 30},  # slow
-            {"x": 100, "steer_angle": 60},  # medium
-            {"x": 200, "steer_angle": 90},  # fast
+            {"x": 150, "steer_angle_speed": 200},  # slow
+            {"x": 100, "steer_angle_speed": 100},  # medium
+            {"x": 200, "steer_angle_speed": 200},  # fast
         ]
         self.speed_index = 0  # Start at slow
 
@@ -133,7 +133,7 @@ class NongMobileManipulator:
             "wrist_roll",
             "gripper",
         ]
-        observations = ["y_mm", "steer_angle"] #Is steer_angle the abs value or steer speed?
+        observations = ["x_speed", "steer_angle_speed"] #Is steer_angle the abs value or steer speed?
         combined_names = follower_arm_names + observations
         return {
             "action": {
@@ -323,9 +323,10 @@ class NongMobileManipulator:
         # Decode only the final message
         try:
             observation = json.loads(last_msg)
-
+            print('++++++++++++++++++++++++++++')
+            print(observation)
             images_dict = observation.get("images", {})
-            new_speed = observation.get("present_speed", {})
+            new_speed = observation.get("raw_velocity", None)
             new_arm_state = observation.get("follower_arm_state", None)
 
             # Convert images
@@ -344,8 +345,8 @@ class NongMobileManipulator:
                 remote_arm_state_tensor = torch.tensor(new_arm_state, dtype=torch.float32)
                 self.last_remote_arm_state = remote_arm_state_tensor
 
-                present_speed = new_speed
-                self.last_present_speed = new_speed
+                present_speed = torch.tensor(new_speed, dtype=torch.float32)
+                self.last_present_speed = present_speed
             else:
                 frames = self.last_frames
 
@@ -380,7 +381,7 @@ class NongMobileManipulator:
 
         speed_setting = self.speed_levels[self.speed_index]
         x_speed = speed_setting["x"]  # e.g. 0.1, 0.25, or 0.4
-        steer_angle_speed = speed_setting["steer_angle"]  # e.g. 30, 60, or 90
+        steer_angle_speed = speed_setting["steer_angle_speed"]  # e.g. 30, 60, or 90
 
         # Prepare to assign the position of the leader to the follower
         arm_positions = []
@@ -390,17 +391,17 @@ class NongMobileManipulator:
             arm_positions.extend(pos_tensor.tolist())
 
         x_cmd = 0.0  # m/s forward/backward
-        steer_angle_speed = 0.0  # deg/s rotation
+        steer_angle_cmd = 0.0  # deg/s rotation
         if self.pressed_keys["forward"]:
             x_cmd += x_speed
         if self.pressed_keys["backward"]:
             x_cmd -= x_speed
         if self.pressed_keys["rotate_left"]:
-            steer_angle += steer_angle_speed
+            steer_angle_cmd += steer_angle_speed
         if self.pressed_keys["rotate_right"]:
-            steer_angle -= steer_angle_speed
+            steer_angle_cmd -= steer_angle_speed
 
-        message = {"raw_velocity": [x_cmd, steer_angle], "arm_positions": arm_positions}
+        message = {"raw_velocity": {'x_speed': x_cmd, 'steer_angle_speed':steer_angle_cmd}, "arm_positions": arm_positions}
         self.cmd_socket.send_string(json.dumps(message))
 
         if not record_data:
@@ -409,7 +410,9 @@ class NongMobileManipulator:
         obs_dict = self.capture_observation()
 
         arm_state_tensor = torch.tensor(arm_positions, dtype=torch.float32)
-        action_tensor = torch.cat([arm_state_tensor, [x_cmd, steer_angle]])
+
+        wheel_tensor = torch.tensor([x_cmd, steer_angle_speed], dtype=torch.float32)
+        action_tensor = torch.cat([arm_state_tensor, wheel_tensor])
         action_dict = {"action": action_tensor}
 
         return obs_dict, action_dict
@@ -457,10 +460,10 @@ class NongMobileManipulator:
         base_actions = action[6:].flatten()
 
         x_cmd_mm = base_actions[0].item()  # mm/s
-        steer_angle = base_actions[1].item()  # deg/s
+        steer_angle_speed = base_actions[1].item()  # deg/s
 
         # Compute wheel commands from body commands.
-        wheel_commands = [x_cmd_mm, steer_angle]
+        wheel_commands = [x_cmd_mm, steer_angle_speed]
 
         arm_positions_list = arm_actions.tolist()
 
@@ -477,7 +480,7 @@ class NongMobileManipulator:
             raise RobotDeviceNotConnectedError("Not connected.")
         if self.cmd_socket:
             stop_cmd = {
-                "raw_velocity": {"x_speed": 0, "steer_angle": 0},
+                "raw_velocity": {"x_speed": 0, "steer_angle_speed": 0},
                 "arm_positions": {},
             }
             self.cmd_socket.send_string(json.dumps(stop_cmd))

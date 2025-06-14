@@ -187,12 +187,12 @@ class NongBotRobotConfig(RobotConfig):
                 port="/dev/tty.usbmodem58A60699971",
                 motors={
                     # name: (index, model)
-                    "shoulder_pan": [(1, "sts3215")],
-                    "shoulder_lift": [(2, "sts3215")],
-                    "elbow_flex": [(3, "sts3215")],
-                    "wrist_flex": [(4, "sts3215")],
-                    "wrist_roll": [(5, "sts3215")],
-                    "gripper": [(6, "sts3215")],
+                    "shoulder_pan": [1, "sts3215"],
+                    "shoulder_lift": [2, "sts3215"],
+                    "elbow_flex": [3, "sts3215"],
+                    "wrist_flex": [4, "sts3215"],
+                    "wrist_roll": [5, "sts3215"],
+                    "gripper": [6, "sts3215"],
                 },
             ),
         }

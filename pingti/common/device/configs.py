@@ -187,12 +187,12 @@ class NongBotRobotConfig(RobotConfig):
                 port="/dev/tty.usbmodem58A60699971",
                 motors={
                     # name: (index, model)
-                    "shoulder_pan": [1, "sts3215"],
-                    "shoulder_lift": [2, "sts3215"],
-                    "elbow_flex": [3, "sts3215"],
-                    "wrist_flex": [4, "sts3215"],
-                    "wrist_roll": [5, "sts3215"],
-                    "gripper": [6, "sts3215"],
+                    "shoulder_pan": [(1, "sts3215")],
+                    "shoulder_lift": [(2, "sts3215")],
+                    "elbow_flex": [(3, "sts3215")],
+                    "wrist_flex": [(4, "sts3215")],
+                    "wrist_roll": [(5, "sts3215")],
+                    "gripper": [(6, "sts3215")],
                 },
             ),
         }
@@ -201,7 +201,7 @@ class NongBotRobotConfig(RobotConfig):
     follower_arms: dict[str, MotorsBusConfig] = field(
         default_factory=lambda: {
             "main": FeetechMotorGroupsBusConfig( 
-                port="/dev/ttyUSB0",
+                port="/dev/ttyUSB1",
                 motors={
                     # name: (index, model)
                     "shoulder_pan": [(1, "scs_series")],
@@ -209,10 +209,7 @@ class NongBotRobotConfig(RobotConfig):
                     "elbow_flex": [(4, "scs_series"), (5, "scs_series")],
                     "wrist_flex": [(6, "scs_series")],
                     "wrist_roll": [(7, "scs_series")],
-                    "gripper": [(8, "scs_series")],
-                    "left_wheel": [(9, "scs_series")],
-                    "back_wheel": [(10, "scs_series")],
-                    "right_wheel": [(11, "scs_series")],
+                    "gripper": [(8, "scs_series")]
                 },
             ),
         }

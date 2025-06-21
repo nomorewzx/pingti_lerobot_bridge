@@ -17,25 +17,55 @@ from lerobot.common.robot_devices.robots.configs import LeKiwiRobotConfig
 from lerobot.common.robot_devices.robots.feetech_calibration import run_arm_manual_calibration
 from lerobot.common.robot_devices.robots.utils import get_arm_id
 from lerobot.common.robot_devices.utils import RobotDeviceNotConnectedError
-
+import time
 from pingti.common.device.configs import NongBotRobotConfig
+from threading import Thread
+from pyjoycon import JoyCon, get_R_id
+
+class JoyConListener(Thread):
+    def __init__(self, on_press, on_release):
+        super().__init__()
+        self.running = True
+        self.joycon = JoyCon(*get_R_id())  # 连接右手 Joy-Con
+        self.on_press = on_press
+        self.on_release = on_release
+
+        self.prev_buttons = set()
+
+    def get_pressed_buttons(self, state):
+        pressed = set()
+
+        for section in ['left', 'right', 'shared']:
+            if section in state['buttons']:
+                for btn, val in state['buttons'][section].items():
+                    if val:  # 按下时是 1
+                        print('++++++++++++')
+                        print('Pressed', btn)
+                        
+                        pressed.add(btn)
+
+        return pressed
 
 
-PYNPUT_AVAILABLE = True
-try:
-    # Only import if there's a valid X server or if we're not on a Pi
-    if ("DISPLAY" not in os.environ) and ("linux" in sys.platform):
-        print("No DISPLAY set. Skipping pynput import.")
-        raise ImportError("pynput blocked intentionally due to no display.")
+    def run(self):
+        while self.running:
+            state = self.joycon.get_status()
+            pressed_buttons = self.get_pressed_buttons(state=state)
 
-    from pynput import keyboard
-except ImportError:
-    keyboard = None
-    PYNPUT_AVAILABLE = False
-except Exception as e:
-    keyboard = None
-    PYNPUT_AVAILABLE = False
-    print(f"Could not import pynput: {e}")
+            for btn in pressed_buttons - self.prev_buttons:
+                print('--------------compare with prev buttons, pressed', btn)
+                self.on_press(btn)
+
+            for btn in self.prev_buttons - pressed_buttons:
+                print('--------------compare with prev buttons, released', btn)
+                self.on_release(btn)
+
+            self.prev_buttons = pressed_buttons
+            time.sleep(0.01)
+
+    def stop(self):
+        self.running = False
+
 
 class NongMobileManipulator:
     """
@@ -97,16 +127,12 @@ class NongMobileManipulator:
             "rotate_right": False,
         }
 
-        if PYNPUT_AVAILABLE:
-            print("pynput is available - enabling local keyboard listener.")
-            self.listener = keyboard.Listener(
-                on_press=self.on_press,
-                on_release=self.on_release,
-            )
-            self.listener.start()
-        else:
-            print("pynput not available - skipping local keyboard listener.")
-            self.listener = None
+        self.listener = JoyConListener(
+            on_press=self.on_press,
+            on_release=self.on_release
+        )
+
+        self.listener.start()
 
     def get_motor_names(self, arms: dict[str, MotorsBus]) -> list:
         return [f"{arm}_{motor}" for arm, bus in arms.items() for motor in bus.motors]
@@ -173,19 +199,18 @@ class NongMobileManipulator:
         try:
             # Movement
             # JoyCon
-            if key.char == self.teleop_keys["forward"]:
+            if key == self.teleop_keys["forward"]:
                 self.pressed_keys["forward"] = True
-            elif key.char == self.teleop_keys["backward"]:
+            elif key == self.teleop_keys["backward"]:
                 self.pressed_keys["backward"] = True
-            elif key.char == self.teleop_keys["rotate_left"]:
+            elif key == self.teleop_keys["rotate_left"]:
                 self.pressed_keys["rotate_left"] = True
-            elif key.char == self.teleop_keys["rotate_right"]:
+            elif key == self.teleop_keys["rotate_right"]:
                 self.pressed_keys["rotate_right"] = True
             # Quit teleoperation
-            elif key.char == self.teleop_keys["quit"]:
+            elif key == self.teleop_keys["quit"]:
                 self.running = False
                 return False
-            
             # Speed control
             # elif key.char == self.teleop_keys["speed_up"]:
             #     self.speed_index = min(self.speed_index + 1, 2)
@@ -194,27 +219,27 @@ class NongMobileManipulator:
             #     self.speed_index = max(self.speed_index - 1, 0)
             #     print(f"Speed index decreased to {self.speed_index}")
 
-        except AttributeError:
+        except AttributeError as e:
+            print('AttributeError:', e)
             # e.g., if key is special like Key.esc
-            if key == keyboard.Key.esc:
+            if key == 'plus':
                 self.running = False
                 return False
 
     def on_release(self, key):
         try:
-            if hasattr(key, "char"):
-                if key.char == self.teleop_keys["forward"]:
-                    self.pressed_keys["forward"] = False
-                elif key.char == self.teleop_keys["backward"]:
-                    self.pressed_keys["backward"] = False
-                elif key.char == self.teleop_keys["rotate_left"]:
-                    self.pressed_keys["rotate_left"] = False
-                elif key.char == self.teleop_keys["rotate_right"]:
-                    self.pressed_keys["rotate_right"] = False
-                elif key.char == self.teleop_keys["stop"]:
-                    self.pressed_keys["stop"] = False
-        except AttributeError:
-            pass
+            if key == self.teleop_keys["forward"]:
+                self.pressed_keys["forward"] = False
+            elif key == self.teleop_keys["backward"]:
+                self.pressed_keys["backward"] = False
+            elif key == self.teleop_keys["rotate_left"]:
+                self.pressed_keys["rotate_left"] = False
+            elif key == self.teleop_keys["rotate_right"]:
+                self.pressed_keys["rotate_right"] = False
+            elif key == self.teleop_keys["stop"]:
+                self.pressed_keys["stop"] = False
+        except AttributeError as e:
+            print(e)
 
     def connect(self):
         if not self.leader_arms:
@@ -323,8 +348,6 @@ class NongMobileManipulator:
         # Decode only the final message
         try:
             observation = json.loads(last_msg)
-            print('++++++++++++++++++++++++++++')
-            print(observation)
             images_dict = observation.get("images", {})
             new_speed = observation.get("raw_velocity", None)
             new_arm_state = observation.get("follower_arm_state", None)
@@ -489,13 +512,11 @@ class NongMobileManipulator:
             self.video_socket.close()
         if self.context:
             self.context.term()
-        if PYNPUT_AVAILABLE:
-            self.listener.stop()
+        self.listener.stop()
         self.is_connected = False
         print("[INFO] Disconnected from remote robot.")
 
     def __del__(self):
         if getattr(self, "is_connected", False):
             self.disconnect()
-        if PYNPUT_AVAILABLE:
             self.listener.stop()

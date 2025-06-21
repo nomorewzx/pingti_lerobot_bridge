@@ -164,7 +164,7 @@ class NongBotRobotConfig(RobotConfig):
     max_relative_target: int | None = None
 
     # Network Configuration
-    ip: str = "192.168.31.246"
+    ip: str = "192.168.31.125"
     port: int = 5555
     video_port: int = 5556
 
@@ -184,15 +184,15 @@ class NongBotRobotConfig(RobotConfig):
     leader_arms: dict[str, MotorsBusConfig] = field(
         default_factory=lambda: {
             "main": FeetechMotorsBusConfig(
-                port="/dev/tty.usbmodem58A60699971",
+                port="/dev/tty.usbmodem5A680134741",
                 motors={
                     # name: (index, model)
-                    "shoulder_pan": [1, "sts3215"],
-                    "shoulder_lift": [2, "sts3215"],
-                    "elbow_flex": [3, "sts3215"],
-                    "wrist_flex": [4, "sts3215"],
-                    "wrist_roll": [5, "sts3215"],
-                    "gripper": [6, "sts3215"],
+                    "shoulder_pan": [1, "scs_series"],
+                    "shoulder_lift": [2, "scs_series"],
+                    "elbow_flex": [3, "scs_series"],
+                    "wrist_flex": [4, "scs_series"],
+                    "wrist_roll": [5, "scs_series"],
+                    "gripper": [6, "scs_series"],
                 },
             ),
         }
@@ -219,10 +219,10 @@ class NongBotRobotConfig(RobotConfig):
         # JoyCon button mapping
         default_factory=lambda: {
             # Movement
-            "forward": "a",
+            "forward": "x",
             "backward": "b",
-            "rotate_left": "x",
-            "rotate_right": "y",
+            "rotate_left": "y",
+            "rotate_right": "a",
             "stop": "zr",
             # Speed control
             # "speed_up": "r",

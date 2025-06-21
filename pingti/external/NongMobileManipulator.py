@@ -107,7 +107,7 @@ class NongMobileManipulator:
 
         # Define three speed levels and a current index
         self.speed_levels = [
-            {"x": 150, "steer_angle_speed": 200},  # slow
+            {"x": 150, "steer_angle_speed": 100},  # slow
             {"x": 100, "steer_angle_speed": 100},  # medium
             {"x": 200, "steer_angle_speed": 200},  # fast
         ]

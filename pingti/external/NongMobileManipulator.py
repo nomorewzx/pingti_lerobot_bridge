@@ -407,11 +407,14 @@ class NongMobileManipulator:
         steer_angle_speed = speed_setting["steer_angle_speed"]  # e.g. 30, 60, or 90
 
         # Prepare to assign the position of the leader to the follower
-        arm_positions = []
-        for name in self.leader_arms:
-            pos = self.leader_arms[name].read("Present_Position")
+        
+        def get_leader_arm_positions(arm_type):
+            arm_positions = []
+            pos = self.leader_arms[arm_type].read("Present_Position")
             pos_tensor = torch.from_numpy(pos).float()
             arm_positions.extend(pos_tensor.tolist())
+        right_arm_positions = get_leader_arm_positions('right')
+        left_arm_positions = get_leader_arm_positions('left')
 
         x_cmd = 0.0  # m/s forward/backward
         steer_angle_cmd = 0.0  # deg/s rotation
@@ -424,7 +427,9 @@ class NongMobileManipulator:
         if self.pressed_keys["rotate_right"]:
             steer_angle_cmd -= steer_angle_speed
 
-        message = {"raw_velocity": {'x_speed': x_cmd, 'steer_angle_speed':steer_angle_cmd}, "arm_positions": arm_positions}
+        message = {"raw_velocity": {'x_speed': x_cmd, 'steer_angle_speed':steer_angle_cmd}, 
+                    "arm_positions": {'left': left_arm_positions, 'right': right_arm_positions}}
+        
         self.cmd_socket.send_string(json.dumps(message))
 
         if not record_data:
@@ -432,11 +437,13 @@ class NongMobileManipulator:
 
         obs_dict = self.capture_observation()
 
-        arm_state_tensor = torch.tensor(arm_positions, dtype=torch.float32)
+        right_arm_state_tensor = torch.tensor(right_arm_positions, dtype=torch.float32)
+        left_arm_state_tensor = torch.tensor(left_arm_positions, dtype=torch.float32)
 
         wheel_tensor = torch.tensor([x_cmd, steer_angle_speed], dtype=torch.float32)
-        action_tensor = torch.cat([arm_state_tensor, wheel_tensor])
-        action_dict = {"action": action_tensor}
+        right_action_tensor = torch.cat([right_arm_state_tensor, wheel_tensor])
+        left_action_tensor = torch.cat([left_arm_state_tensor, wheel_tensor])
+        action_dict = {"action": {'right': right_action_tensor, 'left': left_action_tensor}}
 
         return obs_dict, action_dict
 

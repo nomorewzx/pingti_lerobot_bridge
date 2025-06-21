@@ -153,8 +153,6 @@ class LeKiwiPingTiRobotConfig(RobotConfig):
     )
 
     mock: bool = False
-
-
 @RobotConfig.register_subclass("nong_bot")
 @dataclass
 class NongBotRobotConfig(RobotConfig):
@@ -185,7 +183,7 @@ class NongBotRobotConfig(RobotConfig):
 
     leader_arms: dict[str, MotorsBusConfig] = field(
         default_factory=lambda: {
-            "main": FeetechMotorsBusConfig(
+            "right": FeetechMotorsBusConfig(
                 port="/dev/tty.usbmodem5A680134741",
                 motors={
                     # name: (index, model)
@@ -197,12 +195,24 @@ class NongBotRobotConfig(RobotConfig):
                     "gripper": [6, "scs_series"],
                 },
             ),
+            "left": FeetechMotorsBusConfig(
+                port="/dev/tty.usbmodem5A680134741",
+                motors={
+                    # name: (index, model)
+                    "shoulder_pan": [1, "scs_series"],
+                    "shoulder_lift": [2, "scs_series"],
+                    "elbow_flex": [3, "scs_series"],
+                    "wrist_flex": [4, "scs_series"],
+                    "wrist_roll": [5, "scs_series"],
+                    "gripper": [6, "scs_series"],
+                },
+            )
         }
     )
 
     follower_arms: dict[str, MotorsBusConfig] = field(
         default_factory=lambda: {
-            "main": FeetechMotorGroupsBusConfig( 
+            "right": FeetechMotorGroupsBusConfig( 
                 port="/dev/ttyUSB1",
                 motors={
                     # name: (index, model)
@@ -214,6 +224,18 @@ class NongBotRobotConfig(RobotConfig):
                     "gripper": [(8, "scs_series")]
                 },
             ),
+            "left": FeetechMotorGroupsBusConfig( 
+                port="/dev/ttyUSB2",
+                motors={
+                    # name: (index, model)
+                    "shoulder_pan": [(1, "scs_series")],
+                    "shoulder_lift": [(2, "scs_series"), (3, "scs_series")],
+                    "elbow_flex": [(4, "scs_series"), (5, "scs_series")],
+                    "wrist_flex": [(6, "scs_series")],
+                    "wrist_roll": [(7, "scs_series")],
+                    "gripper": [(8, "scs_series")]
+                },
+            )
         }
     )
 
@@ -236,6 +258,8 @@ class NongBotRobotConfig(RobotConfig):
 
     mock: bool = False
 
+
+
 from lerobot.common.robot_devices.control_configs import ControlConfig
 @ControlConfig.register_subclass("remote_nong_bot")
 @dataclass
@@ -246,3 +270,5 @@ class RemoteNongBotConfig(ControlConfig):
     # Rerun configuration for remote robot (https://ref.rerun.io/docs/python/0.22.1/common/initialization_functions/#rerun.connect_tcp)
     viewer_ip: str | None = None
     viewer_port: str | None = None
+
+

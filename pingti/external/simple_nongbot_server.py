@@ -73,6 +73,7 @@ def run_nong_bot(robot_config):
     if motor_config is None:
         print("[ERROR] Follower arm 'main' configuration not found.")
         return
+    
     motor_bus = FeetechMotorGroupsBus(motor_config)
     motor_bus.connect()
 
@@ -91,7 +92,7 @@ def run_nong_bot(robot_config):
     )
     cam_thread.start()
 
-    ser = serial.Serial("/dev/ttyUSB1", 115200, timeout=0.1)
+    ser = serial.Serial(robot_config.base_serial_port, 115200, timeout=0.1)
     nong_base = NongBase(ser)
 
     context, cmd_socket, video_socket = setup_zmq_sockets(robot_config)

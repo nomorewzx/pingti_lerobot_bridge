@@ -6,6 +6,7 @@ import json
 from lerobot.common.robot_devices.robots.mobile_manipulator import LeKiwi
 from lerobot.common.robot_devices.robots.lekiwi_remote import calibrate_follower_arm, setup_zmq_sockets, run_camera_capture
 from pathlib import Path
+import torch
 
 def xor_check(data):
     xor = data[0]
@@ -99,19 +100,12 @@ def run_nong_bot(robot_config):
         cam.connect()
 
     # Initialize the motors bus using the follower arm configuration.
+    follower_arms: dict[str, FeetechMotorGroupsBus] = {}
     
-    right_arm_motor_config = robot_config.follower_arms.get("right")
-    if right_arm_motor_config is not None:
-        right_motor_bus = FeetechMotorGroupsBus(right_arm_motor_config)
-        right_motor_bus.connect()
-        calibrate_follower_arm(right_motor_bus, robot_config.calibration_dir, 'right')
-    
-    left_arm_motor_config = robot_config.follower_arms.get("left")
-    if left_arm_motor_config is not None:
-        left_motor_bus = FeetechMotorGroupsBus(left_arm_motor_config)
-        left_motor_bus.connect()
-        calibrate_follower_arm(left_motor_bus, robot_config.calibration_dir, 'left')
-
+    for name, _motor_bus_config in robot_config.follower_arms.item():
+        follower_arms[name] = FeetechMotorGroupsBus(_motor_bus_config)
+        follower_arms[name].connect()
+        calibrate_follower_arm(follower_arms[name], robot_config.calibration_dir, name)
     
     # Define the expected arm motor IDs.
     arm_motor_ids = ["shoulder_pan", "shoulder_lift", "elbow_flex", "wrist_flex", "wrist_roll", "gripper"]
@@ -150,19 +144,17 @@ def run_nong_bot(robot_config):
                     # Process arm position commands.
                     if "arm_positions" in data:
                         arm_positions = data["arm_positions"]
-                        left_arm_positions = arm_positions['left']
-                        right_arm_positions = arm_positions['right']
-                        if not isinstance(left_arm_positions, list) or not isinstance(right_arm_positions, list):
-                            print(f"[ERROR] Invalid arm_positions: {arm_positions}")
-                        elif len(right_arm_positions) < len(arm_motor_ids) or len(left_arm_positions) < len(arm_motor_ids):
-                            print(
-                                f"[WARNING] Received right: {len(right_arm_positions)}, left: {len(left_arm_positions)} arm positions, expected {len(arm_motor_ids)}"
-                            )
-                        else:
-                            for motor, pos in zip(arm_motor_ids, right_arm_positions, strict=False):
-                                right_motor_bus.write("Goal_Position", pos, motor)
-                            for motor, pos in zip(arm_motor_ids, left_arm_positions, strict=False):
-                                right_motor_bus.write("Goal_Position", pos, motor)
+                        for name, _pos_values in arm_positions.items():
+                            if not isinstance(_pos_values, list):
+                                print(f"[ERROR] Invalid arm_positions: {name}: {_pos_values}")
+                            elif len(_pos_values) < len(arm_motor_ids):
+                                print(
+                                    f"[WARNING] Received {name}: {len(_pos_values)} values, expected {len(arm_motor_ids)}"
+                                )
+                            else:
+                                for motor, _pos in zip(arm_motor_ids, _pos_values, strict=False):
+                                    #TODO: Set max relative target for safety
+                                    follower_arms[name].write("Goal_Position", _pos, motor)
                     # Process wheel (base) commands.
                     if "raw_velocity" in data:
                         raw_command = data["raw_velocity"]
@@ -186,17 +178,12 @@ def run_nong_bot(robot_config):
                 current_velocity = raw_command
 
             # Read the follower arm state from the motors bus.
-            right_follower_arm_state = []
-            left_follower_arm_state = []
-            for motor in arm_motor_ids:
+            arm_positions: dict[str, list[float]] = {}
+
+            for name, _motor_bus in follower_arms.items():
                 try:
-                    right_pos = right_motor_bus.read("Present_Position", motor)
-                    # Convert the position to a float (or use as is if already numeric).
-                    right_follower_arm_state.append(float(right_pos) if not isinstance(right_pos, (int, float)) else right_pos)
-
-                    left_pos = left_motor_bus.read("Present_Position", motor)
-                    left_follower_arm_state.append(float(left_pos) if not isinstance(left_pos, (int, float)) else left_pos)
-
+                    _pos_values = _motor_bus.read("Present_Position")
+                    arm_positions[name] = _pos_values.tolist()
                 except Exception as e:
                     print(f"[ERROR] Reading motor {motor} failed: {e}")
 
@@ -208,9 +195,9 @@ def run_nong_bot(robot_config):
             observation = {
                 "images": images_dict_copy,
                 "raw_velocity": current_velocity,
-                "right_follower_arm_state": right_follower_arm_state,
-                "left_follower_arm_state": left_follower_arm_state
+                "arm_positioins": arm_positions
             }
+            
             # Send the observation over the video socket.
             video_socket.send_string(json.dumps(observation))
 
@@ -225,8 +212,8 @@ def run_nong_bot(robot_config):
         stop_event.set()
         cam_thread.join()
         nong_base.stop()
-        left_motor_bus.disconnect()
-        right_motor_bus.disconnect()
+        for _arm in follower_arms.values():
+            _arm.disconnect()
         cmd_socket.close()
         video_socket.close()
         context.term()

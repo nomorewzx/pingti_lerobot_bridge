@@ -3,6 +3,7 @@ import json
 import os
 import sys
 from pathlib import Path
+from typing import Dict, List
 
 import cv2
 import numpy as np
@@ -19,6 +20,8 @@ from lerobot.common.robot_devices.robots.utils import get_arm_id
 from lerobot.common.robot_devices.utils import RobotDeviceNotConnectedError
 import time
 from pingti.common.device.configs import NongBotRobotConfig
+from pingti.common.device.feetech_motor_group import FeetechMotorGroupsBus
+from lerobot.common.robot_devices.motors.feetech import FeetechMotorsBus
 from threading import Thread
 from pyjoycon import JoyCon, get_R_id
 
@@ -93,9 +96,9 @@ class NongMobileManipulator:
         self.teleop_keys = self.config.teleop_keys
 
         # For teleoperation, the leader arm (local) is used to record the desired arm pose.
-        self.leader_arms = make_motors_buses_from_configs(self.config.leader_arms)
+        self.leader_arms: Dict[str, FeetechMotorsBus] = make_motors_buses_from_configs(self.config.leader_arms)
 
-        self.follower_arms = make_motors_buses_from_configs(self.config.follower_arms)
+        self.follower_arms: Dict[str, FeetechMotorGroupsBus] = make_motors_buses_from_configs(self.config.follower_arms)
 
         self.cameras = make_cameras_from_configs(self.config.cameras)
 
@@ -406,15 +409,12 @@ class NongMobileManipulator:
         x_speed = speed_setting["x"]  # e.g. 0.1, 0.25, or 0.4
         steer_angle_speed = speed_setting["steer_angle_speed"]  # e.g. 30, 60, or 90
 
-        # Prepare to assign the position of the leader to the follower
-        
-        def get_leader_arm_positions(arm_type):
-            arm_positions = []
-            pos = self.leader_arms[arm_type].read("Present_Position")
-            pos_tensor = torch.from_numpy(pos).float()
-            arm_positions.extend(pos_tensor.tolist())
-        right_arm_positions = get_leader_arm_positions('right')
-        left_arm_positions = get_leader_arm_positions('left')
+        # Prepare to assign the position of the leader to the follower        
+        arm_positions: Dict[str, list[float]] = {}
+
+        for name, _motor_bus in self.follower_arms.items():
+            _pos = _motor_bus.read("Present_Position")
+            arm_positions[name] =  _pos.tolist()
 
         x_cmd = 0.0  # m/s forward/backward
         steer_angle_cmd = 0.0  # deg/s rotation
@@ -428,7 +428,7 @@ class NongMobileManipulator:
             steer_angle_cmd -= steer_angle_speed
 
         message = {"raw_velocity": {'x_speed': x_cmd, 'steer_angle_speed':steer_angle_cmd}, 
-                    "arm_positions": {'left': left_arm_positions, 'right': right_arm_positions}}
+                    "arm_positions": arm_positions}
         
         self.cmd_socket.send_string(json.dumps(message))
 
@@ -437,13 +437,16 @@ class NongMobileManipulator:
 
         obs_dict = self.capture_observation()
 
-        right_arm_state_tensor = torch.tensor(right_arm_positions, dtype=torch.float32)
-        left_arm_state_tensor = torch.tensor(left_arm_positions, dtype=torch.float32)
+        wheel_tensor: torch.tensor = torch.tensor([x_cmd, steer_angle_speed], dtype=torch.float32)
+        # TODO: parse arm positions from follower arm state. 
+        # There could be data processing steps in follower arm side and the follower arms actual state could be different from leader arm instructions
+        arm_positions_tensors: list[torch.tensor] = [torch.tensor(arm_position) for arm_position in arm_positions.values()]
 
-        wheel_tensor = torch.tensor([x_cmd, steer_angle_speed], dtype=torch.float32)
-        right_action_tensor = torch.cat([right_arm_state_tensor, wheel_tensor])
-        left_action_tensor = torch.cat([left_arm_state_tensor, wheel_tensor])
-        action_dict = {"action": {'right': right_action_tensor, 'left': left_action_tensor}}
+        arm_position_tensor: torch.tensor = torch.cat(arm_positions_tensors)
+
+        actioin_tensor = torch.cat([arm_position_tensor, wheel_tensor])
+
+        action_dict = {"action": actioin_tensor}
 
         return obs_dict, action_dict
 

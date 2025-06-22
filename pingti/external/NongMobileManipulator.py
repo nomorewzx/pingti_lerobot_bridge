@@ -360,8 +360,7 @@ class NongMobileManipulator:
             observation = json.loads(last_msg)
             images_dict = observation.get("images", {})
             new_speed = observation.get("raw_velocity", None)
-            new_arm_state = observation.get("follower_arm_state", None)
-
+            new_arm_state = observation.get("arm_positioins", None)
             # Convert images
             for cam_name, image_b64 in images_dict.items():
                 if image_b64:
@@ -370,12 +369,14 @@ class NongMobileManipulator:
                     frame_candidate = cv2.imdecode(np_arr, cv2.IMREAD_COLOR)
                     if frame_candidate is not None:
                         frames[cam_name] = frame_candidate
-
             # If remote_arm_state is None and frames is None there is no message then use the previous message
-            if new_arm_state is not None and frames is not None:
+            if new_arm_state is not None or frames is not None:
                 self.last_frames = frames
-
-                remote_arm_state_tensor = torch.tensor(new_arm_state, dtype=torch.float32)
+                arm_state = []
+                for _, pos in new_arm_state.items():
+                    arm_state.append(torch.tensor(pos, dtype=torch.float32))
+                
+                remote_arm_state_tensor = torch.cat(arm_state)
                 self.last_remote_arm_state = remote_arm_state_tensor
 
                 present_speed = torch.tensor(new_speed, dtype=torch.float32)
@@ -478,7 +479,6 @@ class NongMobileManipulator:
                 # Create a black image using the camera's configured width, height, and channels
                 frame = np.zeros((cam.height, cam.width, cam.channels), dtype=np.uint8)
             obs_dict[f"observation.images.{cam_name}"] = torch.from_numpy(frame)
-
         return obs_dict
 
     def disconnect(self):

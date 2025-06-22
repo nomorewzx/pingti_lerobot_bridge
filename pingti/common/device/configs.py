@@ -173,9 +173,9 @@ class NongBotRobotConfig(RobotConfig):
             "front": OpenCVCameraConfig(
                 camera_index="/dev/video1", fps=30, width=640, height=480, rotation=180
             ),
-            #"wrist": OpenCVCameraConfig(
-            #    camera_index="/dev/video3", fps=30, width=640, height=480, rotation=90
-            #),
+            "wrist": OpenCVCameraConfig(
+               camera_index="/dev/video3", fps=30, width=640, height=480, rotation=90
+            ),
         }
     )
 

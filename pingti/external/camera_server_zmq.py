@@ -12,19 +12,22 @@ def main():
 
     # 初始化你的 OpenCVCamera
     config = OpenCVCameraConfig(
-        camera_index="/dev/video3",
-        fps=30,
-        width=640,
-        height=480,
-        color_mode="rgb",
-        rotation=180
-    )
+                camera_index="/dev/video3", fps=30, width=640, height=480, rotation=180
+            )
     camera = OpenCVCamera(config)
     camera.connect()
 
+    config2 = OpenCVCameraConfig(
+                camera_index="/dev/video1", fps=30, width=640, height=480, rotation=180
+            )
+    camera2 = OpenCVCamera(config2)
+    camera2.connect()
+
+
     try:
         while True:
-            frame = camera.read()
+            frame = camera.async_read()
+            frame2 = camera2.async_read()
             
             _, buffer = cv2.imencode(".jpg", frame, [cv2.IMWRITE_JPEG_QUALITY, 80])
             socket.send(buffer.tobytes())

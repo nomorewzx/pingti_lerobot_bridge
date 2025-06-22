@@ -401,7 +401,11 @@ class NongMobileManipulator:
     def teleop_step(
         self, record_data: bool = False
     ) -> None | tuple[dict[str, torch.Tensor], dict[str, torch.Tensor]]:
+
+        print('In teleop_step')
+
         if not self.is_connected:
+            print('not connected.....')
             raise RobotDeviceNotConnectedError("MobileManipulator is not connected. Run `connect()` first.")
 
         speed_setting = self.speed_levels[self.speed_index]
@@ -410,11 +414,9 @@ class NongMobileManipulator:
 
         # Prepare to assign the position of the leader to the follower        
         arm_positions: Dict[str, list[float]] = {}
-
-        for name, _motor_bus in self.follower_arms.items():
+        for name, _motor_bus in self.leader_arms.items():
             _pos = _motor_bus.read("Present_Position")
             arm_positions[name] =  _pos.tolist()
-
         x_cmd = 0.0  # m/s forward/backward
         steer_angle_cmd = 0.0  # deg/s rotation
         if self.pressed_keys["forward"]:
@@ -429,7 +431,8 @@ class NongMobileManipulator:
         message = {"raw_velocity": {'x_speed': x_cmd, 'steer_angle_speed':steer_angle_cmd}, 
                     "arm_positions": arm_positions}
         
-        self.cmd_socket.send_string(json.dumps(message))
+        sent_message = json.dumps(message)
+        self.cmd_socket.send_string(sent_message)
 
         if not record_data:
             return

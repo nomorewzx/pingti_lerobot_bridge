@@ -247,9 +247,8 @@ class NongMobileManipulator:
     def connect(self):
         if not self.leader_arms:
             raise ValueError("MobileManipulator has no leader arm to connect.")
-        for name in self.leader_arms:
-            print(f"Connecting {name} leader arm.")
-            self.calibrate_leader()
+        print(f"Connecting leader arms.")
+        self.calibrate_leader()
 
         # Set up ZeroMQ sockets to communicate with the remote mobile robot.
         self.context = zmq.Context()

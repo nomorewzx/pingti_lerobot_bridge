@@ -4,7 +4,7 @@ import time
 import threading
 import json
 from lerobot.common.robot_devices.robots.mobile_manipulator import LeKiwi
-from lerobot.common.robot_devices.robots.lekiwi_remote import calibrate_follower_arm, setup_zmq_sockets, run_camera_capture
+from lerobot.common.robot_devices.robots.lekiwi_remote import setup_zmq_sockets, run_camera_capture
 from pathlib import Path
 import torch
 
@@ -43,7 +43,7 @@ def calibrate_follower_arm(motors_bus, calib_dir_str, arm_type):
     """
     calib_dir = Path(calib_dir_str)
     calib_dir.mkdir(parents=True, exist_ok=True)
-    calib_file = calib_dir / "{arm_type}_follower.json"
+    calib_file = calib_dir / f"{arm_type}_follower.json"
     try:
         from lerobot.common.robot_devices.robots.feetech_calibration import run_arm_manual_calibration
     except ImportError:
@@ -56,7 +56,7 @@ def calibrate_follower_arm(motors_bus, calib_dir_str, arm_type):
         print(f"[INFO] Loaded calibration from {calib_file}")
     else:
         print("[INFO] Calibration file not found. Running manual calibration...")
-        calibration = run_arm_manual_calibration(motors_bus, "lekiwi", "follower_arm", "follower")
+        calibration = run_arm_manual_calibration(motors_bus, "nongbot_pingti", arm_type, "follower")
         print(f"[INFO] Calibration complete. Saving to {calib_file}")
         with open(calib_file, "w") as f:
             json.dump(calibration, f)
@@ -102,7 +102,7 @@ def run_nong_bot(robot_config):
     # Initialize the motors bus using the follower arm configuration.
     follower_arms: dict[str, FeetechMotorGroupsBus] = {}
     
-    for name, _motor_bus_config in robot_config.follower_arms.item():
+    for name, _motor_bus_config in robot_config.follower_arms.items():
         follower_arms[name] = FeetechMotorGroupsBus(_motor_bus_config)
         follower_arms[name].connect()
         calibrate_follower_arm(follower_arms[name], robot_config.calibration_dir, name)

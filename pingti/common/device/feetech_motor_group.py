@@ -707,7 +707,7 @@ class FeetechMotorGroupsBus:
         else:
             return values[0]
 
-    def read(self, data_name, motor_names: str | list[str] | None = None):
+    def read(self, data_name, motor_names: str | list[str] | None = None) -> np.ndarray:
         if self.mock:
             import tests.mock_scservo_sdk as scs
         else:

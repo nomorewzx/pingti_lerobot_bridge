@@ -142,8 +142,6 @@ class LeKiwiPingTiRobotConfig(RobotConfig):
             # Movement
             "forward": "w",
             "backward": "s",
-            "left": "a",
-            "right": "d",
             "rotate_left": "z",
             "rotate_right": "x",
             # Speed control
@@ -155,3 +153,122 @@ class LeKiwiPingTiRobotConfig(RobotConfig):
     )
 
     mock: bool = False
+@RobotConfig.register_subclass("nong_bot")
+@dataclass
+class NongBotRobotConfig(RobotConfig):
+    # `max_relative_target` limits the magnitude of the relative positional target vector for safety purposes.
+    # Set this to a positive scalar to have the same value for all motors, or a list that is the same length as
+    # the number of motors in your follower arms.
+    max_relative_target: int | None = None
+
+    # Network Configuration
+    ip: str = "192.168.31.125"
+    port: int = 5555
+    video_port: int = 5556
+
+    base_serial_port = '/dev/ttyUSB0'
+
+    cameras: dict[str, CameraConfig] = field(
+        default_factory=lambda: {
+            "front": OpenCVCameraConfig(
+                camera_index="/dev/video1", fps=30, width=640, height=480, rotation=180
+            ),
+            "wrist": OpenCVCameraConfig(
+               camera_index="/dev/video3", fps=30, width=640, height=480, rotation=90
+            ),
+        }
+    )
+
+    calibration_dir: str = ".cache/calibration/nong_bot"
+
+    leader_arms: dict[str, MotorsBusConfig] = field(
+        default_factory=lambda: {
+            "right": FeetechMotorsBusConfig(
+                port="/dev/tty.usbmodem5A680134741",
+                motors={
+                    # name: (index, model)
+                    "shoulder_pan": [1, "scs_series"],
+                    "shoulder_lift": [2, "scs_series"],
+                    "elbow_flex": [3, "scs_series"],
+                    "wrist_flex": [4, "scs_series"],
+                    "wrist_roll": [5, "scs_series"],
+                    "gripper": [6, "scs_series"],
+                },
+            ),
+            "left": FeetechMotorsBusConfig(
+                port="/dev/tty.usbmodem58A60699971",
+                motors={
+                    # name: (index, model)
+                    "shoulder_pan": [1, "scs_series"],
+                    "shoulder_lift": [2, "scs_series"],
+                    "elbow_flex": [3, "scs_series"],
+                    "wrist_flex": [4, "scs_series"],
+                    "wrist_roll": [5, "scs_series"],
+                    "gripper": [6, "scs_series"],
+                },
+            )
+        }
+    )
+
+    follower_arms: dict[str, MotorsBusConfig] = field(
+        default_factory=lambda: {
+            "right": FeetechMotorGroupsBusConfig( 
+                port="/dev/ttyUSB1",
+                motors={
+                    # name: (index, model)
+                    "shoulder_pan": [(1, "scs_series")],
+                    "shoulder_lift": [(2, "scs_series"), (3, "scs_series")],
+                    "elbow_flex": [(4, "scs_series"), (5, "scs_series")],
+                    "wrist_flex": [(6, "scs_series")],
+                    "wrist_roll": [(7, "scs_series")],
+                    "gripper": [(8, "scs_series")]
+                },
+            ),
+            "left": FeetechMotorGroupsBusConfig( 
+                port="/dev/ttyUSB2",
+                motors={
+                    # name: (index, model)
+                    "shoulder_pan": [(1, "scs_series")],
+                    "shoulder_lift": [(2, "scs_series"), (3, "scs_series")],
+                    "elbow_flex": [(4, "scs_series"), (5, "scs_series")],
+                    "wrist_flex": [(6, "scs_series")],
+                    "wrist_roll": [(7, "scs_series")],
+                    "gripper": [(8, "scs_series")]
+                },
+            )
+        }
+    )
+
+    teleop_keys: dict[str, str] = field(
+        # JoyCon button mapping
+        default_factory=lambda: {
+            # Movement
+            "forward": "x",
+            "backward": "b",
+            "rotate_left": "y",
+            "rotate_right": "a",
+            "stop": "zr",
+            # Speed control
+            # "speed_up": "r",
+            # "speed_down": "f",
+            # quit teleop
+            "quit": "plus",
+        }
+    )
+
+    mock: bool = False
+
+
+
+from lerobot.common.robot_devices.control_configs import ControlConfig
+@ControlConfig.register_subclass("remote_nong_bot")
+@dataclass
+class RemoteNongBotConfig(ControlConfig):
+    log_interval: int = 100
+    # Display all cameras on screen
+    display_data: bool = False
+    # Rerun configuration for remote robot (https://ref.rerun.io/docs/python/0.22.1/common/initialization_functions/#rerun.connect_tcp)
+    viewer_ip: str | None = None
+    viewer_port: str | None = None
+
+

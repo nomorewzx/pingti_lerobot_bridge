@@ -7,8 +7,9 @@ from lerobot.scripts.control_robot import _init_rerun
 from lerobot.common.utils.utils import init_logging
 from lerobot.configs import parser
 from lerobot.scripts.control_robot import calibrate, record, replay, teleoperate
-from pingti.common.device.configs import LeKiwiPingTiRobotConfig
+from pingti.common.device.configs import LeKiwiPingTiRobotConfig, NongBotRobotConfig, RemoteNongBotConfig
 from pingti.common.device.lekiwi_pingti_remote import run_lekiwi_pingti
+from pingti.external.simple_nongbot_server import run_nong_bot
 
 
 def make_robot_from_config(config: RobotConfig):
@@ -18,6 +19,9 @@ def make_robot_from_config(config: RobotConfig):
     elif isinstance(config, LeKiwiPingTiRobotConfig):
         from pingti.common.device.PingtiMobileManipulator import PingtiMobileManipulator
         return PingtiMobileManipulator(config)
+    elif isinstance(config, NongBotRobotConfig):
+        from pingti.external.NongMobileManipulator import NongMobileManipulator
+        return NongMobileManipulator(config)
     else:
         raise ValueError(f"Robot type '{config.robot_type}' is not available.")
 
@@ -41,6 +45,9 @@ def control_pingti_robot(cfg: ControlPipelineConfig):
     elif isinstance(cfg.control, RemoteRobotConfig):
         _init_rerun(control_config=cfg.control, session_name="lerobot_control_loop_remote")
         run_lekiwi_pingti(cfg.robot)
+    elif isinstance(cfg.control, RemoteNongBotConfig):
+        _init_rerun(control_config=cfg.control, session_name="lerobot_control_loop_remote")
+        run_nong_bot(cfg.robot)
 
     if robot.is_connected:
         # Disconnect manually to avoid a "Core dump" during process

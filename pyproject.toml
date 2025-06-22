@@ -15,7 +15,9 @@ requires-python = ">=3.10"
 
 dependencies = [
     "lerobot[feetech]"
-    "pyjoycon"
+    "joycon-python"
+    "hidapi"
+    "pyglm"
 ]
 
 [tool.setuptools]

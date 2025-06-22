@@ -29,7 +29,13 @@ class JoyConListener(Thread):
     def __init__(self, on_press, on_release):
         super().__init__()
         self.running = True
-        self.joycon = JoyCon(*get_R_id())  # 连接右手 Joy-Con
+        
+        try:
+            self.joycon = JoyCon(*get_R_id())  # 连接右手 Joy-Con
+        except ValueError as e:
+            print(f"[Warning] JoyCon not connected or invalid: {e}")
+            self.joycon = None
+
         self.on_press = on_press
         self.on_release = on_release
 
@@ -52,6 +58,8 @@ class JoyConListener(Thread):
 
     def run(self):
         while self.running:
+            if self.joycon is None:
+                return
             state = self.joycon.get_status()
             pressed_buttons = self.get_pressed_buttons(state=state)
 
@@ -401,11 +409,7 @@ class NongMobileManipulator:
     def teleop_step(
         self, record_data: bool = False
     ) -> None | tuple[dict[str, torch.Tensor], dict[str, torch.Tensor]]:
-
-        print('In teleop_step')
-
         if not self.is_connected:
-            print('not connected.....')
             raise RobotDeviceNotConnectedError("MobileManipulator is not connected. Run `connect()` first.")
 
         speed_setting = self.speed_levels[self.speed_index]
@@ -476,39 +480,6 @@ class NongMobileManipulator:
             obs_dict[f"observation.images.{cam_name}"] = torch.from_numpy(frame)
 
         return obs_dict
-
-    def send_action(self, action: torch.Tensor) -> torch.Tensor:
-        if not self.is_connected:
-            raise RobotDeviceNotConnectedError("Not connected. Run `connect()` first.")
-
-        # Ensure the action tensor has at least 9 elements:
-        #   - First 6: arm positions.
-        #   - Last 2: base commands.
-        if action.numel() < 8:
-            # Pad with zeros if there are not enough elements.
-            padded = torch.zeros(8, dtype=action.dtype)
-            padded[: action.numel()] = action
-            action = padded
-
-        # Extract arm and base actions.
-        arm_actions = action[:6].flatten()
-        base_actions = action[6:].flatten()
-
-        x_cmd_mm = base_actions[0].item()  # mm/s
-        steer_angle_speed = base_actions[1].item()  # deg/s
-
-        # Compute wheel commands from body commands.
-        wheel_commands = [x_cmd_mm, steer_angle_speed]
-
-        arm_positions_list = arm_actions.tolist()
-
-        message = {"raw_velocity": wheel_commands, "arm_positions": arm_positions_list}
-        self.cmd_socket.send_string(json.dumps(message))
-
-        return action
-
-    def print_logs(self):
-        pass
 
     def disconnect(self):
         if not self.is_connected:

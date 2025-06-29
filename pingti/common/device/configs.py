@@ -166,16 +166,22 @@ class NongBotRobotConfig(RobotConfig):
     port: int = 5555
     video_port: int = 5556
 
-    base_serial_port = '/dev/ttyUSB0'
+    base_serial_port = '/dev/ttyBase'
 
     cameras: dict[str, CameraConfig] = field(
         default_factory=lambda: {
             "front": OpenCVCameraConfig(
                 camera_index="/dev/video1", fps=30, width=640, height=480, rotation=180
             ),
-            "wrist": OpenCVCameraConfig(
+            "back": OpenCVCameraConfig(
                camera_index="/dev/video3", fps=30, width=640, height=480, rotation=90
             ),
+            "right_wrist": OpenCVCameraConfig(
+               camera_index="/dev/video5", fps=30, width=640, height=480, rotation=90
+            ),
+            "left_wrist": OpenCVCameraConfig(
+               camera_index="/dev/video7", fps=30, width=640, height=480, rotation=90
+            )
         }
     )
 
@@ -213,7 +219,7 @@ class NongBotRobotConfig(RobotConfig):
     follower_arms: dict[str, MotorsBusConfig] = field(
         default_factory=lambda: {
             "right": FeetechMotorGroupsBusConfig( 
-                port="/dev/ttyUSB1",
+                port="/dev/ttyRightArm",
                 motors={
                     # name: (index, model)
                     "shoulder_pan": [(1, "scs_series")],
@@ -225,7 +231,7 @@ class NongBotRobotConfig(RobotConfig):
                 },
             ),
             "left": FeetechMotorGroupsBusConfig( 
-                port="/dev/ttyUSB2",
+                port="/dev/ttyLeftArm",
                 motors={
                     # name: (index, model)
                     "shoulder_pan": [(1, "scs_series")],

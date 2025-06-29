@@ -379,6 +379,9 @@ class NongMobileManipulator:
                 remote_arm_state_tensor = torch.cat(arm_state)
                 self.last_remote_arm_state = remote_arm_state_tensor
 
+                if type(new_speed) is dict:
+                    new_speed = list(new_speed.values())
+                
                 present_speed = torch.tensor(new_speed, dtype=torch.float32)
                 self.last_present_speed = present_speed
             else:

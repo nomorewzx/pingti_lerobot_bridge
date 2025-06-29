@@ -184,7 +184,7 @@ class NongBotRobotConfig(RobotConfig):
     leader_arms: dict[str, MotorsBusConfig] = field(
         default_factory=lambda: {
             "right": FeetechMotorsBusConfig(
-                port="/dev/tty.usbmodem5A680134741",
+                port="/dev/tty.usbmodem58A60699971",
                 motors={
                     # name: (index, model)
                     "shoulder_pan": [1, "scs_series"],
@@ -196,7 +196,7 @@ class NongBotRobotConfig(RobotConfig):
                 },
             ),
             "left": FeetechMotorsBusConfig(
-                port="/dev/tty.usbmodem58A60699971",
+                port="/dev/tty.usbmodem5A680134741", 
                 motors={
                     # name: (index, model)
                     "shoulder_pan": [1, "scs_series"],

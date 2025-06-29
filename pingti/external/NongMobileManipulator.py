@@ -389,6 +389,8 @@ class NongMobileManipulator:
                 present_speed = self.last_present_speed
 
         except Exception as e:
+            import traceback
+            traceback.print_exc()
             print(f"[DEBUG] Error decoding video message: {e}")
             # If decode fails, fall back to old data
             return (self.last_frames, self.last_present_speed, self.last_remote_arm_state)

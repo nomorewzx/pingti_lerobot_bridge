@@ -253,7 +253,7 @@ class NongBotRobotConfig(RobotConfig):
             "backward": "y",
             "rotate_left": "x",
             "rotate_right": "b",
-            "quit": "plus",
+            "stop": "r",
         }
     )
 

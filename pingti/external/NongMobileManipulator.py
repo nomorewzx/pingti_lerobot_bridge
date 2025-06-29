@@ -219,7 +219,7 @@ class NongMobileManipulator:
             elif key == self.teleop_keys["rotate_right"]:
                 self.pressed_keys["rotate_right"] = True
             # Quit teleoperation
-            elif key == self.teleop_keys["quit"]:
+            elif key == self.teleop_keys["stop"]:
                 self.running = False
                 return False
             # Speed control

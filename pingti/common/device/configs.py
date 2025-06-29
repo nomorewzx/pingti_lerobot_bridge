@@ -243,15 +243,11 @@ class NongBotRobotConfig(RobotConfig):
         # JoyCon button mapping
         default_factory=lambda: {
             # Movement
-            "forward": "x",
-            "backward": "b",
-            "rotate_left": "y",
-            "rotate_right": "a",
+            "forward": "a",
+            "backward": "y",
+            "rotate_left": "x",
+            "rotate_right": "b",
             "stop": "zr",
-            # Speed control
-            # "speed_up": "r",
-            # "speed_down": "f",
-            # quit teleop
             "quit": "plus",
         }
     )

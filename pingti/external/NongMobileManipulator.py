@@ -163,12 +163,18 @@ class NongMobileManipulator:
     @property
     def motor_features(self) -> dict:
         follower_arm_names = [
-            "shoulder_pan",
-            "shoulder_lift",
-            "elbow_flex",
-            "wrist_flex",
-            "wrist_roll",
-            "gripper",
+            "right_shoulder_pan",
+            "right_shoulder_lift",
+            "right_elbow_flex",
+            "right_wrist_flex",
+            "right_wrist_roll",
+            "right_gripper",
+            "left_shoulder_pan",
+            "left_shoulder_lift",
+            "left_elbow_flex",
+            "left_wrist_flex",
+            "left_wrist_roll",
+            "left_gripper",
         ]
         observations = ["x_speed", "steer_angle_speed"] #Is steer_angle the abs value or steer speed?
         combined_names = follower_arm_names + observations

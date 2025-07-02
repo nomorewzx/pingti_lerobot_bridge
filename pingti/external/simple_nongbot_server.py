@@ -185,7 +185,7 @@ def run_nong_bot(robot_config):
                     _pos_values = _motor_bus.read("Present_Position")
                     arm_positions[name] = _pos_values.tolist()
                 except Exception as e:
-                    print(f"[ERROR] Reading motor {motor} failed: {e}")
+                    print(f"[ERROR] Reading motor {name} failed: {e}")
 
             # Get the latest camera images.
             with images_lock:

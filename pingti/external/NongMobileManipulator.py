@@ -176,7 +176,7 @@ class NongMobileManipulator:
             "left_wrist_roll",
             "left_gripper",
         ]
-        observations = ["x_speed", "steer_angle_speed"] #Is steer_angle the abs value or steer speed?
+        observations = ["x_speed", "steer_angle_speed"]
         combined_names = follower_arm_names + observations
         return {
             "action": {
@@ -489,8 +489,38 @@ class NongMobileManipulator:
             if frame is None:
                 # Create a black image using the camera's configured width, height, and channels
                 frame = np.zeros((cam.height, cam.width, cam.channels), dtype=np.uint8)
+
             obs_dict[f"observation.images.{cam_name}"] = torch.from_numpy(frame)
         return obs_dict
+
+    def send_action(self, action: torch.Tensor) -> torch.Tensor:
+        if not self.is_connected:
+            raise RobotDeviceNotConnectedError("Not connected. Run `connect()` first.")
+
+        # Ensure the action tensor has at least 14 elements:
+        #   - First 6: Right arm positions.
+        #   - Middle 6: Left arm positions
+        #   - Last 2: base commands.
+        if action.numel() < 14:
+            # Pad with zeros if there are not enough elements.
+            padded = torch.zeros(14, dtype=action.dtype)
+            padded[: action.numel()] = action
+            action = padded
+
+        # Extract arm and base actions.
+        right_arm_actions = action[:6].flatten()
+        left_arm_actions = action[6:12].flatten()
+        base_actions = action[12:].flatten()
+        x_cmd = base_actions[0].item()
+        steer_angle_speed = base_actions[1].item()
+
+        arm_positions_dict = {'right': right_arm_actions.tolist(), 'left': left_arm_actions.tolist()}
+
+        message = {"raw_velocity": {'x_speed': x_cmd, 'steer_angle_speed':steer_angle_speed}, 
+        "arm_positions": arm_positions_dict}
+        self.cmd_socket.send_string(json.dumps(message))
+
+        return action
 
     def disconnect(self):
         if not self.is_connected:

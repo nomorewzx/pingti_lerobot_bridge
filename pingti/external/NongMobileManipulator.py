@@ -228,13 +228,6 @@ class NongMobileManipulator:
             elif key == self.teleop_keys["stop"]:
                 self.running = False
                 return False
-            # Speed control
-            # elif key.char == self.teleop_keys["speed_up"]:
-            #     self.speed_index = min(self.speed_index + 1, 2)
-            #     print(f"Speed index increased to {self.speed_index}")
-            # elif key.char == self.teleop_keys["speed_down"]:
-            #     self.speed_index = max(self.speed_index - 1, 0)
-            #     print(f"Speed index decreased to {self.speed_index}")
 
         except AttributeError as e:
             print('AttributeError:', e)
@@ -444,7 +437,7 @@ class NongMobileManipulator:
         if self.pressed_keys["rotate_right"]:
             steer_angle_cmd -= steer_angle_speed
 
-        message = {"raw_velocity": {'x_speed': x_cmd, 'steer_angle_speed':steer_angle_cmd}, 
+        message = {"raw_velocity": {'x_speed': x_cmd, 'steer_angle_speed':steer_angle_cmd},
                     "arm_positions": arm_positions}
         
         sent_message = json.dumps(message)
@@ -455,7 +448,7 @@ class NongMobileManipulator:
 
         obs_dict = self.capture_observation()
 
-        wheel_tensor: torch.tensor = torch.tensor([x_cmd, steer_angle_speed], dtype=torch.float32)
+        wheel_tensor: torch.tensor = torch.tensor([x_cmd, steer_angle_cmd], dtype=torch.float32)
         # TODO: parse arm positions from follower arm state. 
         # There could be data processing steps in follower arm side and the follower arms actual state could be different from leader arm instructions
         arm_positions_tensors: list[torch.tensor] = [torch.tensor(arm_position) for arm_position in arm_positions.values()]

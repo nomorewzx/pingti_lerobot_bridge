@@ -162,7 +162,7 @@ class NongBotRobotConfig(RobotConfig):
     max_relative_target: int | None = None
 
     # Network Configuration
-    ip: str = "192.168.31.125"
+    ip: str = "192.168.10.59"
     port: int = 5555
     video_port: int = 5556
 

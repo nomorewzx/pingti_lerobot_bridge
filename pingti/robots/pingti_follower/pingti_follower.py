@@ -197,7 +197,7 @@ class PingtiFollower(Robot):
             if not key.endswith(".pos"):
                 continue
             base_name = key.removesuffix(".pos")
-            if key in self.mirror_joints:
+            if base_name in self.mirror_joints:
                 if self.bus.motors[base_name].norm_mode in [MotorNormMode.DEGREES, MotorNormMode.RANGE_M100_100]:
                     goal_pos[f"{base_name}_secondary"] = -val
                 elif self.bus.motors[base_name].norm_mode == MotorNormMode.RANGE_0_100:

@@ -46,7 +46,7 @@ from pprint import pformat
 
 import draccus
 import rerun as rr
-
+from pingti.robots import pingti_follower # noqa: F401 # pylint: disable=unused-import # necessary for draccus
 from lerobot.cameras.opencv.configuration_opencv import OpenCVCameraConfig  # noqa: F401
 from lerobot.cameras.realsense.configuration_realsense import RealSenseCameraConfig  # noqa: F401
 from lerobot.robots import (  # noqa: F401

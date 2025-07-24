@@ -28,6 +28,7 @@ python -m lerobot.calibrate \
 import logging
 from dataclasses import asdict
 from pprint import pformat
+from pingti.robots import pingti_follower # noqa: F401 # pylint: disable=unused-import # necessary for draccus
 
 import draccus
 

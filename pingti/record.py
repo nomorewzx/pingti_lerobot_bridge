@@ -48,7 +48,7 @@ python -m lerobot.record \
 import logging
 from dataclasses import asdict
 from pprint import pformat
-
+from pingti.robots import pingti_follower # noqa: F401 # pylint: disable=unused-import # necessary for draccus
 from lerobot.configs import parser
 from lerobot.datasets.lerobot_dataset import LeRobotDataset
 from lerobot.datasets.utils import hw_to_dataset_features

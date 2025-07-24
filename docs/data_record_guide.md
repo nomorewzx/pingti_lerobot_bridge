@@ -16,20 +16,20 @@ echo $HF_USER
 ```
 
 Run command below for recording:
-Note: use `push_to_hub=true` to upload the dataset to the Hugging Face hub.
+
 ```bash
-python pingti/scripts/control_pingti_robot.py \
-  --robot.type=pingti \
-  --control.type=record \
-  --control.fps=30 \
-  --control.single_task="Put the remote controller into the basket" \
-  --control.repo_id=${HF_USER}/pingti_test \
-  --control.tags='["pingti","tutorial"]' \
-  --control.warmup_time_s=5 \
-  --control.episode_time_s=60 \
-  --control.reset_time_s=30 \
-  --control.num_episodes=10 \
-  --control.push_to_hub=false
+python -m pingti.record \
+    --robot.type=pingti_follower \
+    --robot.port=/dev/tty.usbserial-A50285BI \
+    --robot.id=my_pingti_follower \
+    --robot.cameras="{ front: {type: opencv, index_or_path: 1, width: 1920, height: 1080, fps: 30}}" \
+    --teleop.type=so100_leader \
+    --teleop.port=/dev/tty.usbmodem58A60699971 \
+    --teleop.id=blue \
+    --display_data=true \
+    --dataset.repo_id=${HF_USER}/record-pingti-new-lerobot-test \
+    --dataset.num_episodes=2 \
+    --dataset.single_task="Grab lego block"
 ```
 
 ### Keyboard Shortcuts
@@ -64,7 +64,7 @@ python lerobot/scripts/control_robot.py \
     --robot.type=so100 \
     --control.type=record \
     --control.fps=30 \
-    --control.repo_id=$USER/dataset_name \
+    --control.repo_id=${HF_USER}/dataset_name \
     --control.resume=true \
     [other original parameters]
  ```
@@ -76,6 +76,19 @@ python lerobot/scripts/control_robot.py \
 - Monitor recording quality in real-time
 - Use ← for immediate re-recording if needed
 - Take breaks between episodes during reset phase After Recording
+
+## Replay an episode
+
+Run command below for replaying episode
+
+```bash
+python -m pingti.replay \
+    --robot.type=pingti_follower \
+    --robot.port=/dev/tty.usbserial-A50285BI \
+    --robot.id=my_pingti_follower \
+    --dataset.repo_id=${HF_USER}/record-pingti-new-lerobot-test \
+    --dataset.episode=0
+```
 
 ## Visualization
 

@@ -3,3 +3,4 @@ lerobot/
 **/__pycache__/
 .DS_Store
 outputs/
+.pytest_cache/

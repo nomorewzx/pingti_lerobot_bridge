@@ -54,22 +54,8 @@ Press `←` to immediately stop and restart the episode
 - Press `ESC` to stop recording
 - Use `--control.resume=true` when continuing later
 
-### 2. Managing Recorded Episodes
 
-#### Resuming Recording
-To continue recording where you left off:
-
-```bash
-python lerobot/scripts/control_robot.py \
-    --robot.type=so100 \
-    --control.type=record \
-    --control.fps=30 \
-    --control.repo_id=${HF_USER}/dataset_name \
-    --control.resume=true \
-    [other original parameters]
- ```
-
-### 3. Best Practices Before Starting
+### 2. Best Practices Before Starting
 - Plan your total number of episodes ( --control.num_episodes )
 - Set appropriate episode duration ( --control.episode_time_s )
 - Consider setting longer duration and using → to end episodes early During Recording

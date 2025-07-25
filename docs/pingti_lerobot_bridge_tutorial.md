@@ -114,7 +114,7 @@ Follow [Data Record Guideline](./data_record_guide.md) for recording dataset
 
 ## 6. Policy training
 
-You can follow [Lerobot Tutorial](https://github.com/huggingface/lerobot/blob/main/examples/10_use_so100.md#g-record-a-dataset) for below tasks:
+You can follow [Lerobot Tutorial](https://huggingface.co/docs/lerobot/getting_started_real_world_robot#train-a-policy) for below tasks:
 
 - Train a policy
 - Evaluate your policy

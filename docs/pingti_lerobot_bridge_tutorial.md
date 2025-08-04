@@ -116,5 +116,63 @@ Follow [Data Record Guideline](./data_record_guide.md) for recording dataset
 
 You can follow [Lerobot Tutorial](https://huggingface.co/docs/lerobot/getting_started_real_world_robot#train-a-policy) for below tasks:
 
-- Train a policy
-- Evaluate your policy
+To train a diffusion model 
+
+```bash
+python -m lerobot.scripts.train \
+  --dataset.repo_id=${HF_USER}/put_battery_into_basket \
+  --policy.type=diffusion \
+  --output_dir=outputs/train/duffusion_battery \
+  --job_name=diffusion_battery \
+  --policy.device=cuda \
+  --wandb.enable=true \
+  --policy.repo_id=${HF_USER}/diffusion_battery
+```
+
+## 7. Eval a Trained Policy
+
+SImilar to [Lerobot SO101: Evaluate your policy](https://huggingface.co/docs/lerobot/getting_started_real_world_robot#evaluate-your-policy), we use `record` command to evaluate a trained policy for PingTi arm
+
+```bash
+python -m pingti.record  \
+  --robot.type=pingti_follower \
+  --robot.port=/dev/tty.usbserial-A50285BI \
+  --robot.cameras="{front: {type: opencv, index_or_path: 0, width: 640, height: 480, fps: 30}, overhead: {type: opencv, index_or_path: 1, width: 640, height: 480, fps: 30}}" \
+  --robot.id=my_pingti_follower \
+  --display_data=true \
+  --dataset.num_episodes=10 \
+  --dataset.repo_id=${HF_USER}/eval_diffusion_put_battery_into_basket \
+  --dataset.single_task="Put blue battery into small storage basket" \
+  --policy.path=${HF_USER}/diffusion_battery
+```
+## 8. Async Inference
+
+Using below command to run async inference like [Lerobot Asynchronous Inference on SO-100/101 arms](https://huggingface.co/docs/lerobot/en/async)
+
+### Robot Server
+```bash
+python src/lerobot/scripts/server/policy_server.py \
+    --host=127.0.0.1 \          
+    --port=8080
+```
+
+### Robot Client
+
+Below command starts a `act` model on server
+
+```bash
+python pingti/scripts/server/pingti_robot_client.py \
+    --server_address=127.0.0.1:8080 \
+    --robot.type=pingti_follower \
+    --robot.port=/dev/tty.usbserial-A50285BI \
+    --robot.id=my_pingti_follower \
+    --robot.cameras="{front: {type: opencv, index_or_path: 0, width: 640, height: 480, fps: 30}, overhead: {type: opencv, index_or_path: 1, width: 640, height: 480, fps: 30}}" \
+    --task="Put blue battery into small storage basket" \
+    --policy_type=act \
+    --pretrained_name_or_path= ${HF_USER}/model_to_eval \ # Pretrained model name or path
+    --policy_device=mps \
+    --actions_per_chunk=50 \
+    --chunk_size_threshold=0.5 \
+    --aggregate_fn_name=weighted_average \
+    --debug_visualize_queue_size=True
+```

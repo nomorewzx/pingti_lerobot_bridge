@@ -1,0 +1,1 @@
+SUPPORTED_ROBOTS = ["so100_follower", "so101_follower", "pingti_follower"]

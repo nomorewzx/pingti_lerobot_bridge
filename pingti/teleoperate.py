@@ -17,11 +17,11 @@ python -m pingti.teleoperate \
     --display_data=true
 ```
 
-Example teleoperation with bimanual so100:
+Example teleoperation with bimanual pingti arm:
 
 ```shell
 python -m pingti.teleoperate \
-  --robot.type=bi_so100_follower \
+  --robot.type=bi_pingti_follower \
   --robot.left_arm_port=/dev/tty.usbmodem5A460851411 \
   --robot.right_arm_port=/dev/tty.usbmodem5A460812391 \
   --robot.id=bimanual_follower \
@@ -46,7 +46,7 @@ from pprint import pformat
 
 import draccus
 import rerun as rr
-from pingti.robots import pingti_follower # noqa: F401 # pylint: disable=unused-import # necessary for draccus
+from pingti.robots import pingti_follower, bi_pingti_follower # noqa: F401 # pylint: disable=unused-import # necessary for draccus
 from lerobot.cameras.opencv.configuration_opencv import OpenCVCameraConfig  # noqa: F401
 from lerobot.cameras.realsense.configuration_realsense import RealSenseCameraConfig  # noqa: F401
 from lerobot.robots import (  # noqa: F401

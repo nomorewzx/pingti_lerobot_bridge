@@ -51,6 +51,10 @@ def make_robot_from_config(config: RobotConfig) -> Robot:
         from pingti.robots.pingti_follower import PingtiFollower
 
         return PingtiFollower(config)
+    elif config.type == "bi_pingti_follower":
+        from pingti.robots.bi_pingti_follower import BiPingtiFollower
+
+        return BiPingtiFollower(config)
 
     elif config.type == "mock_robot":
         from tests.mocks.mock_robot import MockRobot

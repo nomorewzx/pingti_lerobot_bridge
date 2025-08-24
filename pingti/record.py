@@ -22,26 +22,28 @@ python -m lerobot.record \
     # --policy.path=${HF_USER}/my_policy \
 ```
 
-Example recording with bimanual so100:
+Example recording with bimanual pingti follower and bi_so100_leader:
 ```shell
-python -m lerobot.record \
-  --robot.type=bi_so100_follower \
-  --robot.left_arm_port=/dev/tty.usbmodem5A460851411 \
-  --robot.right_arm_port=/dev/tty.usbmodem5A460812391 \
-  --robot.id=bimanual_follower \
+python -m pingti.record \
+  --robot.type=bi_pingti_follower \
+  --robot.left_arm_port=/dev/tty.usbserial-21110 \
+  --robot.right_arm_port=/dev/tty.usbserial-A50285BI \
+  --robot.id=bimanual_pingti_follower \
   --robot.cameras='{
-    left: {"type": "opencv", "index_or_path": 0, "width": 640, "height": 480, "fps": 30},
-    top: {"type": "opencv", "index_or_path": 1, "width": 640, "height": 480, "fps": 30},
-    right: {"type": "opencv", "index_or_path": 2, "width": 640, "height": 480, "fps": 30}
+    top: {"type": "opencv", "index_or_path": 0, "width": 640, "height": 480, "fps": 30, "rotation": 180},
+    right: {"type": "opencv", "index_or_path": 1, "width": 640, "height": 480, "fps": 30},
+    left: {"type": "opencv", "index_or_path": 2, "width": 640, "height": 480, "fps": 30}
   }' \
   --teleop.type=bi_so100_leader \
-  --teleop.left_arm_port=/dev/tty.usbmodem5A460828611 \
-  --teleop.right_arm_port=/dev/tty.usbmodem5A460826981 \
+  --teleop.left_arm_port=/dev/tty.usbmodem5A680134741 \
+  --teleop.right_arm_port=/dev/tty.usbmodem58A60699971 \
   --teleop.id=bimanual_leader \
   --display_data=true \
-  --dataset.repo_id=${HF_USER}/bimanual-so100-handover-cube \
-  --dataset.num_episodes=25 \
-  --dataset.single_task="Grab and handover the red cube to the other arm"
+  --dataset.repo_id=${HF_USER}/bimanual-pick-apricot-0 \
+  --dataset.num_episodes=50 \
+  --dataset.single_task="Pick the apricot and put into storage basket" \
+  --dataset.episode_time_s=20 \
+  --dataset.reset_time_s=2
 ```
 """
 

@@ -17,7 +17,7 @@ python -m pingti.teleoperate \
     --display_data=true
 ```
 
-Example teleoperation with bimanual pingti arm:
+Example teleoperation with bimanual pingti follower and bi_so100_leader:
 
 ```shell
 python -m pingti.teleoperate \

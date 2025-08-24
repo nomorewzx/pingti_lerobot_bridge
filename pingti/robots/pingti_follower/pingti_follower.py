@@ -138,16 +138,24 @@ class PingtiFollower(Robot):
         self._save_calibration()
         print("Calibration saved to", self.calibration_fpath)
 
-    def configure(self) -> None:
+    def configure(self, maximum_acceleration=254, acceleration=254) -> None:
         with self.bus.torque_disabled():
-            self.bus.configure_motors()
+            self.bus.configure_motors(maximum_acceleration=maximum_acceleration, acceleration=acceleration)
             for motor in self.bus.motors:
+                if self.bus.motors[motor].model == "sts3250":
+                    self.bus.write("Maximum_Acceleration", motor, 100)
+                    self.bus.write("Acceleration", motor, 100)
+                    self.bus.write("P_Coefficient", motor, 8)
+                    self.bus.write("I_Coefficient", motor, 0)
+                    self.bus.write("D_Coefficient", motor, 5)
+                else:
+                    self.bus.write("Maximum_Acceleration", motor, maximum_acceleration)
+                    self.bus.write("Acceleration", motor, acceleration)
+                    self.bus.write("P_Coefficient", motor, 16)
+                    self.bus.write("I_Coefficient", motor, 0)
+                    self.bus.write("D_Coefficient", motor, 32)
+                
                 self.bus.write("Operating_Mode", motor, OperatingMode.POSITION.value)
-                # Set P_Coefficient to lower value to avoid shakiness (Default is 32)
-                self.bus.write("P_Coefficient", motor, 16)
-                # Set I_Coefficient and D_Coefficient to default value 0 and 32
-                self.bus.write("I_Coefficient", motor, 0)
-                self.bus.write("D_Coefficient", motor, 32)
 
     def setup_motors(self) -> None:
         for motor in reversed(self.bus.motors):

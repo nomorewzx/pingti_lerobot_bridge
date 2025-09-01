@@ -12,7 +12,7 @@ import draccus
 import grpc
 import torch
 from lerobot.configs.policies import PreTrainedConfig
-from pingti.robots import pingti_follower # noqa: F401 # pylint: disable=unused-import # necessary for draccus
+from pingti.robots import pingti_follower, bi_pingti_follower # noqa: F401 # pylint: disable=unused-import # necessary for draccus
 from lerobot.scripts.server.configs import RobotClientConfig
 from lerobot.scripts.server.robot_client import RobotClient
 from lerobot.scripts.server.helpers import (
@@ -24,8 +24,8 @@ from lerobot.scripts.server.helpers import (
 )
 
 from lerobot.transport import (
-    async_inference_pb2,  # type: ignore
-    async_inference_pb2_grpc,  # type: ignore
+    services_pb2,  # type: ignore
+    services_pb2_grpc,  # type: ignore
 )
 from lerobot.transport.utils import grpc_channel_options
 
@@ -75,10 +75,10 @@ class PingtiRobotClient(RobotClient):
         self.channel = grpc.insecure_channel(
             self.server_address, grpc_channel_options(initial_backoff=f"{config.environment_dt:.4f}s")
         )
-        self.stub = async_inference_pb2_grpc.AsyncInferenceStub(self.channel)
+        self.stub = services_pb2_grpc.AsyncInferenceStub(self.channel)
         self.logger.info(f"Initializing client to connect to server at {self.server_address}")
 
-        self._running_event = threading.Event()
+        self.shutdown_event = threading.Event()
 
         # Initialize client side variables
         self.latest_action_lock = threading.Lock()

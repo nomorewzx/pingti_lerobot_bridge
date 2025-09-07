@@ -155,7 +155,7 @@ def record(cfg: RecordConfig) -> LeRobotDataset:
                     robot=robot,
                     events=events,
                     fps=cfg.dataset.fps,
-                    teleop=teleop,
+                    teleop=teleop if policy is None else None,
                     control_time_s=cfg.dataset.reset_time_s,
                     single_task=cfg.dataset.single_task,
                     display_data=cfg.display_data,

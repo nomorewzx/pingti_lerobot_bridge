@@ -41,6 +41,11 @@ Why Step vs Refill?
 ## Example Output (abridged)
 
 ```
+Using device: mps
+Creating policies...
+✓ ACT policy created
+✓ SmolVLA policy created
+✓ Diffusion policy created
 ======================================================================
 INFERENCE SPEED BENCHMARK RESULTS
 ======================================================================

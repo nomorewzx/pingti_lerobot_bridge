@@ -46,21 +46,29 @@ Creating policies...
 ✓ ACT policy created
 ✓ SmolVLA policy created
 ✓ Diffusion policy created
-
 ======================================================================
 INFERENCE SPEED BENCHMARK RESULTS
 ======================================================================
 Metric               ACT (ms)     SmolVLA (ms) Diffusion (ms)   ACT/SmolVLA  Diff/SmolVLA
 ----------------------------------------------------------------------
-Mean Time            0.30         14.75        418.24           0.02x       28.36x
-Median Time          0.30         2.58         2.03             0.11x       0.79x
-Min Time             0.29         2.50         1.74             0.11x       0.70x
-Max Time             0.31         601.12       3478.52          0.00x       5.79x
+Mean Time            0.53         14.72        446.89           0.04        x 30.36       x
+Median Time          0.28         2.58         2.03             0.11        x 0.79        x
+Min Time             0.27         2.36         1.75             0.12        x 0.74        x
+Max Time             31.07        633.19       3763.59          0.05        x 5.94        x
 ----------------------------------------------------------------------
-Successful Runs      50           50           50
-Step Mean (ms)       0.30ms       2.78ms       3.29ms
-Refill Mean (ms)     -            601.12ms     3461.20ms
-Step/Refill Count    50/-         49/1         44/6
+Successful Runs      500          500          500             
+Step Mean (ms)       0.53ms       2.75ms       2.24ms          
+Refill Mean (ms)     -            601.19ms     3531.22ms       
+Step/Refill Count    500/-            490/10           437/63              
+
+======================================================================
+SUMMARY
+======================================================================
+ACT vs SmolVLA: faster (27.84x)
+Diffusion vs SmolVLA: slower (30.36x)
+ACT mean inference time: 0.53ms
+SmolVLA mean inference time: 14.72ms
+Diffusion mean inference time: 446.89ms
 ```
 
 解读建议

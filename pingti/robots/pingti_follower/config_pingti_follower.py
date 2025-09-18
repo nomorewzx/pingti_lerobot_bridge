@@ -39,3 +39,9 @@ class PingtiFollowerConfig(RobotConfig):
 
     # Set to `True` for backward compatibility with previous policies/dataset
     use_degrees: bool = False
+
+    # Action filtering configuration to reduce jitter
+    action_filter_type: str = "none"  # Options: "none", "lowpass", "moving_average", "adaptive"
+    action_filter_alpha: float = 0.3  # Smoothing factor for low-pass and adaptive filters (0 < alpha <= 1)
+    action_filter_window_size: int = 3  # Window size for moving average filter
+    action_filter_adaptation_threshold: float = 0.1  # Threshold for adaptive filter

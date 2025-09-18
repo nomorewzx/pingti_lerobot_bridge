@@ -16,6 +16,8 @@ from lerobot.robots import Robot
 from lerobot.robots.utils import ensure_safe_goal_position
 from .config_pingti_follower import PingtiFollowerConfig
 
+from pingti.robots.action_filters import create_action_filter
+
 logger = logging.getLogger(__name__)
 
 
@@ -47,6 +49,15 @@ class PingtiFollower(Robot):
         )
         self.cameras = make_cameras_from_configs(config.cameras)
         self.mirror_joints = ['shoulder_lift', 'elbow_flex']
+
+        # Initialize action filter
+        self.action_filter = create_action_filter(
+            filter_type=config.action_filter_type,
+            alpha=config.action_filter_alpha,
+            window_size=config.action_filter_window_size,
+            adaptation_threshold=config.action_filter_adaptation_threshold,
+        )
+
 
     @property
     def _motors_ft(self) -> dict[str, type]:
@@ -199,9 +210,11 @@ class PingtiFollower(Robot):
         if not self.is_connected:
             raise DeviceNotConnectedError(f"{self} is not connected.")
 
+        filtered_action = self.action_filter.filter(action)
+
         goal_pos = {}
         
-        for key, val in action.items():
+        for key, val in filtered_action.items():
             if not key.endswith(".pos"):
                 continue
             base_name = key.removesuffix(".pos")
@@ -222,6 +235,16 @@ class PingtiFollower(Robot):
         # Send goal position to the arm
         self.bus.sync_write("Goal_Position", goal_pos)
         return {f"{motor}.pos": val for motor, val in goal_pos.items()}
+
+    def reset_action_filter(self) -> None:
+        """Reset the action filter state.
+        
+        This is useful when starting a new task or episode to clear any
+        accumulated filter history.
+        """
+        self.action_filter.reset()
+        logger.info(f"{self} action filter reset.")
+
 
     def disconnect(self):
         if not self.is_connected:

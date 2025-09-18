@@ -6,7 +6,7 @@ This script shows how different filter types can reduce jitter in robot actions.
 
 import numpy as np
 import matplotlib.pyplot as plt
-from pingti.robots.action_filters import create_action_filter
+from pingti.utils.action_filters import create_action_filter
 
 
 def generate_noisy_actions(num_steps=100, noise_level=0.1):
@@ -151,7 +151,7 @@ def test_filters():
     plt.grid(True, alpha=0.3)
     
     plt.tight_layout()
-    plt.savefig('action_filter_comparison.png', dpi=150, bbox_inches='tight')
+    plt.savefig('./tests/utils/action_filter_comparison.png', dpi=150, bbox_inches='tight')
     plt.show()
     
     # Print summary

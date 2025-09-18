@@ -16,7 +16,7 @@ from lerobot.robots import Robot
 from lerobot.robots.utils import ensure_safe_goal_position
 from .config_pingti_follower import PingtiFollowerConfig
 
-from pingti.robots.action_filters import create_action_filter
+from pingti.utils.action_filters import create_action_filter
 
 logger = logging.getLogger(__name__)
 

@@ -189,7 +189,7 @@ robot.send_action(action)  # Automatically filtered
 Run the test script to see filter performance:
 
 ```bash
-python test_action_filtering.py
+python -m tests.utils.test_action_filters
 ```
 
 This will generate comparison plots showing the effectiveness of different filter types.
@@ -197,8 +197,8 @@ This will generate comparison plots showing the effectiveness of different filte
 ## Implementation Details
 
 The filtering is implemented in:
-- `src/lerobot/utils/action_filters.py`: Filter classes and factory function
-- `src/lerobot/robots/so100_follower/so100_follower.py`: Integration with robot
-- `src/lerobot/robots/so100_follower/config_so100_follower.py`: Configuration options
+- `pingti/utils/action_filters.py`: Filter classes and factory function
+- `pingti/robots/so100_follower/so100_follower.py`: Integration with robot
+- `pingti/robots/so100_follower/config_so100_follower.py`: Configuration options
 
 The filtering happens in the `send_action` method before the action is sent to the motors, ensuring all actions are consistently filtered.

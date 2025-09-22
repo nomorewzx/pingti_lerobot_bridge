@@ -50,10 +50,6 @@ class BiPingtiFollower(Robot):
         self.left_arm = PingtiFollower(left_arm_config)
         self.right_arm = PingtiFollower(right_arm_config)
         
-        # Temp fix for the right arm, change the model to sts3215
-        self.right_arm.bus.motors["shoulder_lift"].model = "sts3215"
-        self.right_arm.bus.motors["shoulder_lift_secondary"].model = "sts3215"
-
         self.cameras = make_cameras_from_configs(config.cameras)
 
     @property

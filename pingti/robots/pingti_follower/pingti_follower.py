@@ -164,7 +164,7 @@ class PingtiFollower(Robot):
                     self.bus.write("Acceleration", motor, acceleration)
                     self.bus.write("P_Coefficient", motor, 16)
                     self.bus.write("I_Coefficient", motor, 0)
-                    self.bus.write("D_Coefficient", motor, 32)
+                    self.bus.write("D_Coefficient", motor, 8)
                 
                 self.bus.write("Operating_Mode", motor, OperatingMode.POSITION.value)
 

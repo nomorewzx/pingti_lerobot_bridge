@@ -42,7 +42,7 @@ your_workspace_dir/
 Make sure you are in the python virtual env `lerobot`. Then run command below
 
 ```
-cd ./pingti_lerobot_bridge && pip install -e .
+cd ./pingti_lerobot_bridge && pip install .
 ```
 
 ## 3. Calibration
@@ -53,12 +53,11 @@ cd ./pingti_lerobot_bridge && pip install -e .
 
 Following [Lerobot SO100 Leader calibration](https://huggingface.co/docs/lerobot/main/en/so100#leader)
 
-Run command below and replace the port number with your own port
 
 ```
-python -m lerobot.calibrate \
+lerobot-calibrate \
     --teleop.type=so100_leader \
-    --teleop.port=/dev/tty.usbmodem58A60699971 \
+    --teleop.port=/dev/ttyACM0 \
     --teleop.id=blue
 ```
 
@@ -69,9 +68,9 @@ See video of calibration process can be found [here](https://huggingface.co/docs
 Run command below, replace port number with your own port number
 
 ```
-python -m pingti.calibrate \                                               
+lerobot-calibrate \
     --robot.type=pingti_follower \
-    --robot.port=/dev/tty.usbserial-A50285BI \
+    --robot.port=/dev/ttyUSB0 \
     --robot.id=my_pingti_follower  
 ```
 
@@ -83,25 +82,26 @@ Also move the joints of pingti arm similar to the video of so101 [here](https://
 Run teleoperation (replace port with your own port)
 
 ```bash
-python -m pingti.teleoperate \                                              
-    --robot.type=pingti_follower \
-    --robot.port=/dev/tty.usbserial-A50285BI \
-    --robot.id=my_pingti_follower \
-    --teleop.type=so100_leader \
-    --teleop.port=/dev/tty.usbmodem58A60699971 \
-    --teleop.id=blue
+lerobot-teleoperate \
+  --robot.type=pingti_follower \
+  --robot.port=/dev/ttyUSB0 \
+  --robot.id=my_pingti_follower \
+  --teleop.type=so100_leader \
+  --teleop.port=/dev/ttyACM0 \
+  --teleop.id=blue \
+  --display_data=false
 ```
 
 And then you can run teleopearation with camera using command below, which is helpful to visualize whether camera captures the teleoperation scene properly before actually collecting dataset
 
 ```bash
-python -m pingti.teleoperate \
+lerobot-teleoperate \
     --robot.type=pingti_follower \
-    --robot.port=/dev/tty.usbserial-A50285BI \
+    --robot.port=/dev/ttyUSB0 \
+    --robot.cameras="{ front: {type: opencv, index_or_path: 4, width: 640, height: 480, fps: 30}}" \
     --robot.id=my_pingti_follower \
-    --robot.cameras="{ front: {type: opencv, index_or_path: 0, width: 1920, height: 1080, fps: 30}}" \
     --teleop.type=so100_leader \
-    --teleop.port=/dev/tty.usbmodem58A60699971 \
+    --teleop.port=/dev/ttyACM0 \
     --teleop.id=blue \
     --display_data=true
 ```
@@ -114,37 +114,9 @@ Follow [Data Record Guideline](./data_record_guide.md) for recording dataset
 
 ## 6. Policy training
 
-You can follow [Lerobot Tutorial](https://huggingface.co/docs/lerobot/getting_started_real_world_robot#train-a-policy) for below tasks:
+You can follow [Lerobot Tutorial](https://huggingface.co/docs/lerobot/getting_started_real_world_robot#train-a-policy) for training and evaluation of policies:
 
-To train a diffusion model 
 
-```bash
-python -m lerobot.scripts.train \
-  --dataset.repo_id=${HF_USER}/put_battery_into_basket \
-  --policy.type=diffusion \
-  --output_dir=outputs/train/duffusion_battery \
-  --job_name=diffusion_battery \
-  --policy.device=cuda \
-  --wandb.enable=true \
-  --policy.repo_id=${HF_USER}/diffusion_battery
-```
-
-## 7. Eval a Trained Policy
-
-SImilar to [Lerobot SO101: Evaluate your policy](https://huggingface.co/docs/lerobot/getting_started_real_world_robot#evaluate-your-policy), we use `record` command to evaluate a trained policy for PingTi arm
-
-```bash
-python -m pingti.record  \
-  --robot.type=pingti_follower \
-  --robot.port=/dev/tty.usbserial-A50285BI \
-  --robot.cameras="{front: {type: opencv, index_or_path: 0, width: 640, height: 480, fps: 30}, overhead: {type: opencv, index_or_path: 1, width: 640, height: 480, fps: 30}}" \
-  --robot.id=my_pingti_follower \
-  --display_data=true \
-  --dataset.num_episodes=10 \
-  --dataset.repo_id=${HF_USER}/eval_diffusion_put_battery_into_basket \
-  --dataset.single_task="Put blue battery into small storage basket" \
-  --policy.path=${HF_USER}/diffusion_battery
-```
 ## 8. Async Inference
 
 Using below command to run async inference like [Lerobot Asynchronous Inference on SO-100/101 arms](https://huggingface.co/docs/lerobot/en/async)

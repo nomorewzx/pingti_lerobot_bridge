@@ -18,18 +18,18 @@ echo $HF_USER
 Run command below for recording:
 
 ```bash
-python -m pingti.record \
+lerobot-record \
     --robot.type=pingti_follower \
-    --robot.port=/dev/tty.usbserial-A50285BI \
+    --robot.port=/dev/ttyUSB0 \
+    --robot.cameras="{ front: {type: opencv, index_or_path: 4, width: 640, height: 480, fps: 30}}" \
     --robot.id=my_pingti_follower \
-    --robot.cameras="{ front: {type: opencv, index_or_path: 1, width: 1920, height: 1080, fps: 30}}" \
-    --teleop.type=so100_leader \
-    --teleop.port=/dev/tty.usbmodem58A60699971 \
-    --teleop.id=blue \
-    --display_data=true \
-    --dataset.repo_id=${HF_USER}/record-pingti-new-lerobot-test \
+    --dataset.repo_id=zhenxuan/datasetv3_test \
     --dataset.num_episodes=2 \
-    --dataset.single_task="Grab lego block"
+    --dataset.single_task="Grab the cube" \
+    --display_data=true \
+    --teleop.type=so100_leader \
+    --teleop.port=/dev/ttyACM0 \
+    --teleop.id=blue
 ```
 
 ### Keyboard Shortcuts
@@ -68,24 +68,17 @@ Press `←` to immediately stop and restart the episode
 Run command below for replaying episode
 
 ```bash
-python -m pingti.replay \
+lerobot-replay \
     --robot.type=pingti_follower \
-    --robot.port=/dev/tty.usbserial-A50285BI \
+    --robot.port=/dev/ttyUSB0 \
     --robot.id=my_pingti_follower \
-    --dataset.repo_id=${HF_USER}/record-pingti-new-lerobot-test \
+    --dataset.repo_id=zhenxuan/datasetv3_test \
     --dataset.episode=0
 ```
 
 ## Visualization
 
-Visualize the repository using the following command (`cd` to `lerobot` dir before running below command):
+Visualize the repository using the following command 
 ```
-python lerobot/scripts/visualize_dataset_html.py \
-    --repo-id $USER/dataset_name
+lerobot-dataset-viz     --repo-id zhenxuan/datasetv3_test     --episode-index 1
 ```
-Go to below link to visualize the dataset
-
-http://localhost:9090
-
-You will see something like below:
-![image](../media/visualization_repo.jpg)

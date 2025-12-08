@@ -21,4 +21,12 @@ dependencies = [
 ]
 
 [tool.setuptools]
-packages = ["pingti"]
+packages = [
+    "pingti",
+    "pingti.robots",
+    "pingti.robots.pingti_follower",
+    "pingti.robots.bi_pingti_follower",
+    "pingti.robots.action_filters",
+    "pingti.utils",
+    "lerobot_robot_pingti",
+]

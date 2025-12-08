@@ -6,3 +6,4 @@ outputs/
 .pytest_cache/
 artifacts/
 logs/
+build/

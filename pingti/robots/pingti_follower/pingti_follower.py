@@ -5,7 +5,7 @@ from functools import cached_property
 from typing import Any
 
 from lerobot.cameras.utils import make_cameras_from_configs
-from lerobot.utils.errors import DeviceAlreadyConnectedError, DeviceNotConnectedError
+from lerobot.errors import DeviceAlreadyConnectedError, DeviceNotConnectedError
 from lerobot.motors import Motor, MotorCalibration, MotorNormMode
 from lerobot.motors.feetech import (
     FeetechMotorsBus,
@@ -37,8 +37,8 @@ class PingtiFollower(Robot):
             port=self.config.port,
             motors={
                 "shoulder_pan": Motor(1, "sts3215", norm_mode_body),
-                "shoulder_lift_secondary": Motor(2, "sts3215", norm_mode_body),
-                "shoulder_lift": Motor(3, "sts3215", norm_mode_body),
+                "shoulder_lift_secondary": Motor(2, "sts3250", norm_mode_body),
+                "shoulder_lift": Motor(3, "sts3250", norm_mode_body),
                 "elbow_flex_secondary": Motor(4, "sts3215", norm_mode_body),
                 "elbow_flex": Motor(5, "sts3215", norm_mode_body),
                 "wrist_flex": Motor(6, "sts3215", norm_mode_body),

@@ -1,27 +1,19 @@
 import logging
-import pickle  # nosec
 import threading
-import time
-from collections.abc import Callable
 from dataclasses import asdict
 from pprint import pformat
 from queue import Queue
-from typing import Any
 
 import draccus
 import grpc
-import torch
-from lerobot.configs.policies import PreTrainedConfig
-from pingti.robots import pingti_follower, bi_pingti_follower # noqa: F401 # pylint: disable=unused-import # necessary for draccus
-from lerobot.scripts.server.configs import RobotClientConfig
-from lerobot.scripts.server.robot_client import RobotClient
-from lerobot.scripts.server.helpers import (
+from lerobot.async_inference.configs import RobotClientConfig
+from lerobot.async_inference.helpers import (
     FPSTracker,
     RemotePolicyConfig,
     map_robot_keys_to_lerobot_features,
-    validate_robot_cameras_for_policy,
     visualize_action_queue_size,
 )
+from lerobot.async_inference.robot_client import RobotClient
 
 from lerobot.transport import (
     services_pb2,  # type: ignore
@@ -29,18 +21,20 @@ from lerobot.transport import (
 )
 from lerobot.transport.utils import grpc_channel_options
 
+from pingti.robots import bi_pingti_follower, pingti_follower  # noqa: F401 # pylint: disable=unused-import
 from pingti.robots.utils import make_robot_from_config
 from pingti.scripts.server.constants import SUPPORTED_ROBOTS
 
+
 class PingtiRobotClient(RobotClient):
     """Subclass of RobotClient that only overrides the make_robot_from_config function.
-    
+
     All other parameters and functions are inherited from RobotClient.
     """
-    
+
     def __init__(self, config: RobotClientConfig):
         """Initialize CustomRobotClient with unified configuration.
-        
+
         Args:
             config: RobotClientConfig containing all configuration parameters
         """
@@ -53,14 +47,6 @@ class PingtiRobotClient(RobotClient):
         # Reuse the rest of the parent class initialization by calling it manually
         # since we can't call super().__init__() due to the robot creation difference
         lerobot_features = map_robot_keys_to_lerobot_features(self.robot)
-
-        if config.verify_robot_cameras:
-            # Load policy config for validation
-            policy_config = PreTrainedConfig.from_pretrained(config.pretrained_name_or_path)
-            policy_image_features = policy_config.image_features
-
-            # The cameras specified for inference must match the one supported by the policy chosen
-            validate_robot_cameras_for_policy(lerobot_features, policy_image_features)
 
         # Use environment variable if server_address is not provided in config
         self.server_address = config.server_address
@@ -100,6 +86,7 @@ class PingtiRobotClient(RobotClient):
         # Use an event for thread-safe coordination
         self.must_go = threading.Event()
         self.must_go.set()  # Initially set - observations qualify for direct processing
+
 
 @draccus.wrap()
 def async_client(cfg: RobotClientConfig):

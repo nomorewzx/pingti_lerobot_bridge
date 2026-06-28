@@ -9,16 +9,22 @@ from pathlib import Path
 from lerobot.motors import MotorNormMode
 
 # Import the class under test
-from pingti.robots.pingti_follower.pingti_follower import PingtiFollower
+from pingti.robots.pingti_follower.config_pingti_follower import PingtiFollowerConfig, PingtiLiteFollowerConfig
+from pingti.robots.pingti_follower.pingti_follower import PingtiFollower, PingtiLiteFollower
 
 class DummyConfig:
     id = "dummy_id"
     port = 'dummy_port'
     cameras = {}
     use_degrees = False
+    use_force_proxy = False
     max_relative_target = None
     disable_torque_on_disconnect = True
     calibration_dir = None  # Will be set in setUp
+    action_filter_type = "none"
+    action_filter_alpha = 0.3
+    action_filter_window_size = 3
+    action_filter_adaptation_threshold = 0.1
 
 class TestPingtiFollowerSendAction(unittest.TestCase):
     def setUp(self):
@@ -133,6 +139,67 @@ class TestPingtiFollowerSendAction(unittest.TestCase):
         self.assertEqual(obs['shoulder_lift.pos'], 12.3)
         self.assertEqual(obs['elbow_flex.pos'], 45.6)
         self.assertEqual(obs['wrist_flex.pos'], 7.8)
+
+    def test_get_observation_reads_force_proxy_when_enabled(self):
+        self.config.use_force_proxy = True
+        self.robot.config.use_force_proxy = True
+        self.robot.bus.sync_read.side_effect = [
+            {
+                'shoulder_lift': 12.3,
+                'shoulder_lift_secondary': 99.9,
+                'elbow_flex': 45.6,
+                'elbow_flex_secondary': 88.8,
+                'wrist_flex': 7.8,
+            },
+            {
+                'shoulder_lift': 11,
+                'shoulder_lift_secondary': 99,
+                'elbow_flex': 22,
+                'elbow_flex_secondary': 88,
+                'wrist_flex': 33,
+            },
+        ]
+
+        obs = self.robot.get_observation()
+
+        self.assertEqual(obs['shoulder_lift.present_load'], 11)
+        self.assertEqual(obs['elbow_flex.present_load'], 22)
+        self.assertEqual(obs['wrist_flex.present_load'], 33)
+        self.assertNotIn('shoulder_lift_secondary.present_current', obs)
+        self.assertNotIn('shoulder_lift.present_current', obs)
+        self.assertNotIn('elbow_flex_secondary.present_load', obs)
+
+
+class TestPingtiFollowerVariants(unittest.TestCase):
+    def setUp(self):
+        self.temp_dir = Path(tempfile.mkdtemp())
+
+    def tearDown(self):
+        shutil.rmtree(self.temp_dir)
+
+    def test_standard_and_lite_configs_register_separate_robot_types(self):
+        standard_config = PingtiFollowerConfig(port='dummy_port', calibration_dir=self.temp_dir)
+        lite_config = PingtiLiteFollowerConfig(port='dummy_port', calibration_dir=self.temp_dir)
+
+        self.assertEqual(standard_config.type, 'pingti_follower')
+        self.assertEqual(lite_config.type, 'pingti_lite_follower')
+
+    def test_standard_follower_uses_high_torque_shoulder_motors(self):
+        config = PingtiFollowerConfig(port='dummy_port', calibration_dir=self.temp_dir)
+        robot = PingtiFollower(config)
+
+        self.assertEqual(robot.bus.motors['shoulder_lift'].model, 'sts3250')
+        self.assertEqual(robot.bus.motors['shoulder_lift_secondary'].model, 'sts3250')
+        self.assertEqual(robot.bus.motors['elbow_flex'].model, 'sts3215')
+
+    def test_lite_follower_uses_sts3215_shoulder_motors(self):
+        config = PingtiLiteFollowerConfig(port='dummy_port', calibration_dir=self.temp_dir)
+        robot = PingtiLiteFollower(config)
+
+        self.assertEqual(robot.name, 'pingti_lite_follower')
+        self.assertEqual(robot.bus.motors['shoulder_lift'].model, 'sts3215')
+        self.assertEqual(robot.bus.motors['shoulder_lift_secondary'].model, 'sts3215')
+        self.assertEqual(robot.bus.motors['elbow_flex'].model, 'sts3215')
 
 if __name__ == '__main__':
     unittest.main()

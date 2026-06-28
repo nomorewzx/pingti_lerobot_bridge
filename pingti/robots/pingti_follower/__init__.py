@@ -1,2 +1,2 @@
-from .config_pingti_follower import PingtiFollowerConfig
-from .pingti_follower import PingtiFollower
+from .config_pingti_follower import PingtiFollowerConfig, PingtiLiteFollowerConfig
+from .pingti_follower import PingtiFollower, PingtiLiteFollower

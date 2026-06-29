@@ -14,11 +14,13 @@ from lerobot.motors.feetech import (
 
 from lerobot.robots import Robot
 from lerobot.robots.utils import ensure_safe_goal_position
-from .config_pingti_follower import PingtiFollowerConfig
+from .config_pingti_follower import PingtiFollowerConfig, PingtiLiteFollowerConfig
 
 from pingti.utils.action_filters import create_action_filter
 
 logger = logging.getLogger(__name__)
+
+MOTOR_READ_NUM_RETRY = 2
 
 
 class PingtiFollower(Robot):
@@ -28,6 +30,7 @@ class PingtiFollower(Robot):
 
     config_class = PingtiFollowerConfig
     name = "pingti_follower"
+    shoulder_lift_model = "sts3250"
 
     def __init__(self, config: PingtiFollowerConfig):
         super().__init__(config)
@@ -37,8 +40,8 @@ class PingtiFollower(Robot):
             port=self.config.port,
             motors={
                 "shoulder_pan": Motor(1, "sts3215", norm_mode_body),
-                "shoulder_lift_secondary": Motor(2, "sts3250", norm_mode_body),
-                "shoulder_lift": Motor(3, "sts3250", norm_mode_body),
+                "shoulder_lift_secondary": Motor(2, self.shoulder_lift_model, norm_mode_body),
+                "shoulder_lift": Motor(3, self.shoulder_lift_model, norm_mode_body),
                 "elbow_flex_secondary": Motor(4, "sts3215", norm_mode_body),
                 "elbow_flex": Motor(5, "sts3215", norm_mode_body),
                 "wrist_flex": Motor(6, "sts3215", norm_mode_body),
@@ -60,8 +63,19 @@ class PingtiFollower(Robot):
 
 
     @property
+    def _primary_motors(self) -> list[str]:
+        return [motor for motor in self.bus.motors if not motor.endswith("secondary")]
+
+    @property
     def _motors_ft(self) -> dict[str, type]:
-        return {f"{motor}.pos": float for motor in self.bus.motors if not motor.endswith('secondary')}
+        return {f"{motor}.pos": float for motor in self._primary_motors}
+
+    @property
+    def _motor_force_proxy_ft(self) -> dict[str, type]:
+        force_proxy_features = {}
+        for motor in self._primary_motors:
+            force_proxy_features[f"{motor}.present_load"] = float
+        return force_proxy_features
 
     @property
     def _cameras_ft(self) -> dict[str, tuple]:
@@ -71,7 +85,10 @@ class PingtiFollower(Robot):
 
     @cached_property
     def observation_features(self) -> dict[str, type | tuple]:
-        return {**self._motors_ft, **self._cameras_ft}
+        motor_features = {**self._motors_ft}
+        if self.config.use_force_proxy:
+            motor_features.update(self._motor_force_proxy_ft)
+        return {**motor_features, **self._cameras_ft}
 
     @cached_property
     def action_features(self) -> dict[str, type]:
@@ -179,16 +196,30 @@ class PingtiFollower(Robot):
             raise DeviceNotConnectedError(f"{self} is not connected.")
 
         # Read arm position
+        primary_motors = self._primary_motors
         start = time.perf_counter()
-        obs_dict = self.bus.sync_read("Present_Position")
-        obs_dict = {f"{motor}.pos": val for motor, val in obs_dict.items() if not motor.endswith('_secondary')}
+        obs_dict = self.bus.sync_read(
+            "Present_Position", primary_motors, num_retry=MOTOR_READ_NUM_RETRY
+        )
+        obs_dict = {f"{motor}.pos": val for motor, val in obs_dict.items() if motor in primary_motors}
         dt_ms = (time.perf_counter() - start) * 1e3
         logger.debug(f"{self} read state: {dt_ms:.1f}ms")
+
+        if self.config.use_force_proxy:
+            start = time.perf_counter()
+            present_load = self.bus.sync_read(
+                "Present_Load", primary_motors, normalize=False, num_retry=MOTOR_READ_NUM_RETRY
+            )
+            obs_dict.update(
+                {f"{motor}.present_load": val for motor, val in present_load.items() if motor in primary_motors}
+            )
+            dt_ms = (time.perf_counter() - start) * 1e3
+            logger.debug(f"{self} read present load: {dt_ms:.1f}ms")
 
         # Capture images from cameras
         for cam_key, cam in self.cameras.items():
             start = time.perf_counter()
-            obs_dict[cam_key] = cam.async_read()
+            obs_dict[cam_key] = cam.read_latest()
             dt_ms = (time.perf_counter() - start) * 1e3
             logger.debug(f"{self} read {cam_key}: {dt_ms:.1f}ms")
 
@@ -255,3 +286,13 @@ class PingtiFollower(Robot):
             cam.disconnect()
 
         logger.info(f"{self} disconnected.")
+
+
+class PingtiLiteFollower(PingtiFollower):
+    """
+    Lite PingTi Arm variant with STS3215 shoulder lift motors.
+    """
+
+    config_class = PingtiLiteFollowerConfig
+    name = "pingti_lite_follower"
+    shoulder_lift_model = "sts3215"

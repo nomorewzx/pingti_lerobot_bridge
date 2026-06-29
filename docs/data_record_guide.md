@@ -39,7 +39,7 @@ lerobot-record \
 - `CTRL+C`: Emergency stop (not recommended for normal use)
 
 ### Episode Duration
-- Set by `--control.episode_time_s` parameter
+- Set by `--dataset.episode_time_s` parameter
 - Can be shorter if ended early with `→` key
 - Actual duration is properly saved in the dataset
 
@@ -52,12 +52,12 @@ Press `←` to immediately stop and restart the episode
 
 #### Scenario: Need to Take a Break
 - Press `ESC` to stop recording
-- Use `--control.resume=true` when continuing later
+- Use `--resume=true` when continuing later
 
 
 ### 2. Best Practices Before Starting
-- Plan your total number of episodes ( --control.num_episodes )
-- Set appropriate episode duration ( --control.episode_time_s )
+- Plan your total number of episodes (`--dataset.num_episodes`)
+- Set appropriate episode duration (`--dataset.episode_time_s`)
 - Consider setting longer duration and using → to end episodes early During Recording
 - Monitor recording quality in real-time
 - Use ← for immediate re-recording if needed
@@ -79,6 +79,8 @@ lerobot-replay \
 ## Visualization
 
 Visualize the repository using the following command 
-```
-lerobot-dataset-viz     --repo-id zhenxuan/datasetv3_test     --episode-index 1
+```bash
+lerobot-dataset-viz \
+    --repo-id zhenxuan/datasetv3_test \
+    --episode-index 1
 ```

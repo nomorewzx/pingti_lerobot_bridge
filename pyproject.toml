@@ -3,7 +3,7 @@ requires = ["setuptools>=61.0.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "pingti"
+name = "lerobot_robot_pingti"
 version = "0.1.0"
 description = "PingTi Robot Configuration"
 authors = [
@@ -11,10 +11,10 @@ authors = [
 ]
 
 license = {text = "Apache-2.0"}
-requires-python = ">=3.10"
+requires-python = ">=3.12,<3.13"
 
 dependencies = [
-    "lerobot[feetech]",
+    "lerobot[async,feetech,transformers-dep]==0.5.1",
     "joycon-python",
     "hidapi",
     "pyglm"

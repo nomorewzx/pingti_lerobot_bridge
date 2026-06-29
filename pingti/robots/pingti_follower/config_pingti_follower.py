@@ -30,12 +30,16 @@ class PingtiFollowerConfig(RobotConfig):
     disable_torque_on_disconnect: bool = True
 
     # `max_relative_target` limits the magnitude of the relative positional target vector for safety purposes.
-    # Set this to a positive scalar to have the same value for all motors, or a list that is the same length as
-    # the number of motors in your follower arms.
-    max_relative_target: int | None = None
+    # Set this to a positive scalar for all motors, or a dictionary mapping motor names to limits.
+    max_relative_target: float | dict[str, float] | None = None
 
     # cameras
     cameras: dict[str, CameraConfig] = field(default_factory=dict)
+
+    # Include Present_Load in observation.state as a motor force proxy.
+    # Keep this disabled by default so legacy PingTi datasets remain position-only unless
+    # collection explicitly opts in.
+    use_force_proxy: bool = False
 
     # Set to `True` for backward compatibility with previous policies/dataset
     use_degrees: bool = False
@@ -45,3 +49,9 @@ class PingtiFollowerConfig(RobotConfig):
     action_filter_alpha: float = 0.3  # Smoothing factor for low-pass and adaptive filters (0 < alpha <= 1)
     action_filter_window_size: int = 3  # Window size for moving average filter
     action_filter_adaptation_threshold: float = 0.1  # Threshold for adaptive filter
+
+
+@RobotConfig.register_subclass("pingti_lite_follower")
+@dataclass
+class PingtiLiteFollowerConfig(PingtiFollowerConfig):
+    pass
